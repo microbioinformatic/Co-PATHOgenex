@@ -1,0 +1,756 @@
+---
+title: "HP_J99"
+output: html_document
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Overview
+
+This document contains code and analysis for coexpression network construction and visualization. 
+
+## Helicobacter_pylori_J99
+
+```{r myWGCNAnetowrk}
+# Load the package
+library(WGCNA);
+library(ggplot2)
+# The following setting is important, do not omit.
+options(stringsAsFactors = FALSE);
+
+#Reading the data
+Helicobacter_pylori_J99 = read.csv("~/Desktop/Helicobacter_pylori_J99/Helicobacter_pylori_J99_R_input2.csv", sep=";")
+dim(Helicobacter_pylori_J99) #analising input
+
+#getting TPM values
+Helicobacter_pylori_J99_expr =as.data.frame(Helicobacter_pylori_J99[,2:ncol(Helicobacter_pylori_J99)])
+dim(Helicobacter_pylori_J99_expr) #analysing dataset
+
+#transforming dataset to start running WGCNA functions
+rownames(Helicobacter_pylori_J99_expr) = Helicobacter_pylori_J99[,1]
+
+#filtering out missing values
+gsg = goodSamplesGenes(Helicobacter_pylori_J99_expr,verbose = 3)
+if (!gsg$allOK)
+{
+Helicobacter_pylori_J99_expr=Helicobacter_pylori_J99_expr[gsg$goodSamples,gsg$goodGenes]
+}
+
+#Number of genes after filtering
+dim(Helicobacter_pylori_J99_expr)[2]
+```
+
+
+
+## Cluster tree
+
+
+```{r clustertree, echo=TRUE}
+sampleTree = hclust(dist(Helicobacter_pylori_J99_expr), method="average")
+par(mar = c(0,4,2,0))
+plot(sampleTree, main = "Sample clustering to detect outliers", sub="", xlab="", cex.lab = 1.5,cex.axis = 1.5, cex.main = 1)
+abline(h = 40000, col = "red")
+```
+
+## Note from samples tree to detect outliers: all samples will be included in the analysis, no potential outlier detected
+
+## Power and topologycal analysis 
+
+```{r Networkpower, echo=TRUE}
+powers = c(c(1:10), seq(from = 12, to=20, by=2))
+sft = pickSoftThreshold(Helicobacter_pylori_J99_expr, powerVector = powers, verbose = 5)
+par(mfrow = c(1,2));
+cex1 = 0.6;
+plot(sft$fitIndices[,1], -sign(sft$fitIndices[,3])*sft$fitIndices[,2],xlab="Soft Threshold (power)",ylab="Scale Free Topology Model Fit,signed R^2",type="n",main = paste("Scale independence"));
+text(sft$fitIndices[,1],-sign(sft$fitIndices[,3])*sft$fitIndices[,2],labels=powers,cex=cex1,col="red");
+abline(h=0.80,col="red")
+plot(sft$fitIndices[,1], sft$fitIndices[,5],xlab="Soft Threshold (power)",ylab="Mean Connectivity", type="n",main = paste("Mean connectivity"))
+text(sft$fitIndices[,1], sft$fitIndices[,5], labels=powers, cex=cex1,col="red")
+```
+
+## Note Power=10, R2 over 0.80, module size=15
+
+## Network generation
+
+```{r Networkgeneration}
+net = blockwiseModules(Helicobacter_pylori_J99_expr, power = 12, TOMType = "unsigned", minModuleSize = 15, reassignThreshold = 0, mergeCutHeight = 0.25, numericLabels = TRUE, pamRespectsDendro = FALSE, saveTOMs = TRUE, saveTOMFileBase = "Helicobacter_pylori_J99_expr", verbose = 3)
+```
+
+## Module analysis and visualization
+
+```{r Moduleanalysis, echo=TRUE}
+table(net$colors)
+mergedColors = labels2colors(net$colors)
+plotDendroAndColors(net$dendrograms[[1]], mergedColors[net$blockGenes[[1]]], "Module colors",dendroLabels = FALSE, hang = 0.03,addGuide = TRUE, guideHang = 0.05)
+as.data.frame(table(labels2colors(net$colors)))
+moduleLabels = net$colors
+moduleColors = labels2colors(net$colors)
+MEs = net$MEs;
+geneTree = net$dendrograms[[1]];
+save(MEs, moduleLabels, moduleColors, geneTree,file ="Helicobacter_pylori_J99_expr.RData")
+```
+
+##  Dendrograms (clustering trees) of the module eigengenes
+```{r DendogramME, echo=TRUE}
+datME=moduleEigengenes(Helicobacter_pylori_J99_expr,moduleColors)$eigengenes
+signif(cor(datME, use="p"), 2)
+dissimME=(1-t(cor(datME, method="p")))/2
+hclustdatME=hclust(as.dist(dissimME), method="average" )
+par(mfrow=c(1,1))
+plot(hclustdatME, main="Clustering tree based of the module eigengenes")
+```
+
+## Gene expression profile within modules
+```{r expressionpercolor, echo=TRUE}
+generic_stress_sample_names=c("As_1","As_2","As_3","Ctrl_1","Ctrl_2","Ctrl_3","Li_1","Li_2","Li_3","Mig_1","Mig_2","Mig_3","Nd_1","Nd_2","Nd_3","Ns_1","Ns_2","Ns_3","Oss_1","Oss_2","Oss_3","Oxs_1","Oxs_2","Oxs_3","Sp_1","Sp_2","Sp_3","Tm_1","Tm_2","Tm_3","Vic_1","Vic_2","Vic_3")
+colorh1=moduleColors
+#################################
+which.module="turquoise"
+ME=datME[, paste("ME",which.module, sep="")]
+ par(mfrow=c(2,1), mar=c(0.3, 5.5, 8, 2))
+plotMat(t(scale(Helicobacter_pylori_J99_expr[,colorh1==which.module ]) ),nrgcols=30,rlabels=F,rcols=which.module,clabels=rownames(Helicobacter_pylori_J99_expr), cex.main=2)
+colors_bar= ifelse(ME<0, "green", "red")
+ par(mar=c(5, 4.2, 0, 0.85))
+barplot(ME, col=t(colors_bar), main="", cex.main=1,ylab="eigengene expression",xlab=which.module)
+##############################
+multi_species_df_HP_J99_temporary = as.data.frame(ME)
+rownames(multi_species_df_HP_J99_temporary) =generic_stress_sample_names
+Helicobacter_pylori_J99_expr_1 = scale(Helicobacter_pylori_J99_expr[,colorh1==which.module ])
+ME_lengthOfVector=rep(NA, ncol(Helicobacter_pylori_J99_expr_1)*33)
+Module_names <- rep(colnames(Helicobacter_pylori_J99_expr_1),33)
+lengthOfVector_col=ncol(Helicobacter_pylori_J99_expr_1)
+position_ME=1
+for(i in 1:lengthOfVector_col) {
+for(j in 1:33) {
+ME_lengthOfVector[position_ME] <- Helicobacter_pylori_J99_expr_1[j,i]
+Module_names[position_ME] <-      colnames(Helicobacter_pylori_J99_expr_1)[i]
+position_ME = position_ME+1
+}
+position_ME = i*33+1
+}
+stress=rep(generic_stress_sample_names,ncol(Helicobacter_pylori_J99_expr_1))
+stress_1 <- gsub("_1","", stress)
+stress_2 <- gsub("_2","", stress_1)
+stress_3 <- gsub("_3","", stress_2)
+stress=stress_3
+ME_Kruskall_dataset = as.data.frame(cbind(ME_lengthOfVector,stress, Module_names))
+colnames(ME_Kruskall_dataset) <- c("MEigengene", "Stress", "Module_names")
+Plot <- ggplot(ME_Kruskall_dataset, aes(x=ME_Kruskall_dataset[,2], y=as.numeric(ME_Kruskall_dataset[,1]))) +   geom_violin(trim=FALSE, fill='#A4A4A4')+ labs(y="Gene expression", x = "Stress conditions")
+Plot + theme_classic()
+
+kruskal.test(as.numeric(ME_Kruskall_dataset[,1])~ME_Kruskall_dataset[,2], data = ME_Kruskall_dataset)
+pairwise.wilcox.test(as.numeric(ME_Kruskall_dataset[,1]),ME_Kruskall_dataset[,2],p.adjust.method = "BH")
+## Module name
+positive_eigengene_name= which(ME > 0.25)
+negative_eigengene_name= which(ME  < -0.25)
+module_renamed="HP_J99_"
+if (length(positive_eigengene_name) > 0 && length(negative_eigengene_name)> 0) {
+  for (i in 1: length(positive_eigengene_name)){
+          module_renamed=paste(module_renamed,generic_stress_sample_names[positive_eigengene_name[i]],sep="")
+       }
+  module_renamed=paste(module_renamed,"_UP_",sep="")
+  for (i in 1: length(negative_eigengene_name)){
+             module_renamed=paste(module_renamed,generic_stress_sample_names[negative_eigengene_name[i]],sep="")
+         }
+  module_renamed=paste(module_renamed,"_DOWN",sep="")
+}else if (length(positive_eigengene_name)> 0){
+        for (i in 1: length(positive_eigengene_name)){
+          module_renamed=paste(module_renamed,generic_stress_sample_names[positive_eigengene_name[i]],sep="")
+       }
+  module_renamed=paste(module_renamed,"_UP",sep="")
+}else if (length(negative_eigengene_name)> 0){
+         for (i in 1: length(negative_eigengene_name)){
+             module_renamed=paste(module_renamed,generic_stress_sample_names[negative_eigengene_name[i]],sep="")
+         }
+    module_renamed=paste(module_renamed,"_DOWN",sep="")
+} else {
+   module_renamed=paste(module_renamed,which.module,sep="")}
+#####################################################
+module_renamed
+colnames(multi_species_df_HP_J99_temporary)=module_renamed
+multi_species_df_HP_J99=multi_species_df_HP_J99_temporary
+write.csv(Helicobacter_pylori_J99_expr_1,paste(module_renamed,".csv",sep=""))
+####################################################
+#####################################################
+
+##################################
+which.module="brown"
+ME=datME[, paste("ME",which.module, sep="")]
+ par(mfrow=c(2,1), mar=c(0.3, 5.5, 8, 2))
+plotMat(t(scale(Helicobacter_pylori_J99_expr[,colorh1==which.module ]) ),nrgcols=30,rlabels=F,rcols=which.module,clabels=rownames(Helicobacter_pylori_J99_expr), cex.main=2)
+colors_bar= ifelse(ME<0, "green", "red")
+ par(mar=c(5, 4.2, 0, 0.85))
+barplot(ME, col=t(colors_bar), main="", cex.main=2,ylab="eigengene expression",xlab=which.module)
+#######################################
+multi_species_df_HP_J99_temporary = as.data.frame(ME)
+rownames(multi_species_df_HP_J99_temporary) =generic_stress_sample_names
+Helicobacter_pylori_J99_expr_1 = scale(Helicobacter_pylori_J99_expr[,colorh1==which.module ])
+ME_lengthOfVector=rep(NA, ncol(Helicobacter_pylori_J99_expr_1)*33)
+Module_names <- rep(colnames(Helicobacter_pylori_J99_expr_1),33)
+lengthOfVector_col=ncol(Helicobacter_pylori_J99_expr_1)
+position_ME=1
+for(i in 1:lengthOfVector_col) {
+for(j in 1:33) {
+ME_lengthOfVector[position_ME] <- Helicobacter_pylori_J99_expr_1[j,i]
+Module_names[position_ME] <-      colnames(Helicobacter_pylori_J99_expr_1)[i]
+position_ME = position_ME+1
+}
+position_ME = i*33+1
+}
+stress=rep(generic_stress_sample_names,ncol(Helicobacter_pylori_J99_expr_1))
+stress_1 <- gsub("_1","", stress)
+stress_2 <- gsub("_2","", stress_1)
+stress_3 <- gsub("_3","", stress_2)
+stress=stress_3
+ME_Kruskall_dataset = as.data.frame(cbind(ME_lengthOfVector,stress, Module_names))
+colnames(ME_Kruskall_dataset) <- c("MEigengene", "Stress", "Module_names")
+Plot <- ggplot(ME_Kruskall_dataset, aes(x=ME_Kruskall_dataset[,2], y=as.numeric(ME_Kruskall_dataset[,1]))) +   geom_violin(trim=FALSE, fill='#A4A4A4')+ labs(y="Gene expression", x = "Stress conditions")
+Plot + theme_classic()
+
+kruskal.test(as.numeric(ME_Kruskall_dataset[,1])~ME_Kruskall_dataset[,2], data = ME_Kruskall_dataset)
+pairwise.wilcox.test(as.numeric(ME_Kruskall_dataset[,1]),ME_Kruskall_dataset[,2],p.adjust.method = "BH")
+## Module name
+positive_eigengene_name= which(ME > 0.25)
+negative_eigengene_name= which(ME  < -0.25)
+module_renamed="HP_J99_"
+if (length(positive_eigengene_name) > 0 && length(negative_eigengene_name)> 0) {
+  for (i in 1: length(positive_eigengene_name)){
+          module_renamed=paste(module_renamed,generic_stress_sample_names[positive_eigengene_name[i]],sep="")
+       }
+  module_renamed=paste(module_renamed,"_UP_",sep="")
+  for (i in 1: length(negative_eigengene_name)){
+             module_renamed=paste(module_renamed,generic_stress_sample_names[negative_eigengene_name[i]],sep="")
+         }
+  module_renamed=paste(module_renamed,"_DOWN",sep="")
+}else if (length(positive_eigengene_name)> 0){
+        for (i in 1: length(positive_eigengene_name)){
+          module_renamed=paste(module_renamed,generic_stress_sample_names[positive_eigengene_name[i]],sep="")
+       }
+  module_renamed=paste(module_renamed,"_UP",sep="")
+}else if (length(negative_eigengene_name)> 0){
+         for (i in 1: length(negative_eigengene_name)){
+             module_renamed=paste(module_renamed,generic_stress_sample_names[negative_eigengene_name[i]],sep="")
+         }
+    module_renamed=paste(module_renamed,"_DOWN",sep="")
+} else {
+   module_renamed=paste(module_renamed,which.module,sep="")}
+#####################################################
+module_renamed
+colnames(multi_species_df_HP_J99_temporary)=module_renamed
+multi_species_df_HP_J99=cbind(multi_species_df_HP_J99,multi_species_df_HP_J99_temporary)
+write.csv(Helicobacter_pylori_J99_expr_1,paste(module_renamed,".csv",sep=""))
+multi_species_df_HP_J99
+############################################################
+
+###########################################################
+which.module="blue"
+ME=datME[, paste("ME",which.module, sep="")]
+ par(mfrow=c(2,1), mar=c(0.3, 5.5, 8, 2))
+plotMat(t(scale(Helicobacter_pylori_J99_expr[,colorh1==which.module ]) ),nrgcols=30,rlabels=F,rcols=which.module,clabels=rownames(Helicobacter_pylori_J99_expr), cex.main=2)
+colors_bar= ifelse(ME<0, "green", "red")
+ par(mar=c(5, 4.2, 0, 0.85))
+barplot(ME, col=t(colors_bar), main="", cex.main=2,ylab="eigengene expression",xlab=which.module)
+####################################################################
+multi_species_df_HP_J99_temporary = as.data.frame(ME)
+rownames(multi_species_df_HP_J99_temporary) =generic_stress_sample_names
+Helicobacter_pylori_J99_expr_1 = scale(Helicobacter_pylori_J99_expr[,colorh1==which.module ])
+ME_lengthOfVector=rep(NA, ncol(Helicobacter_pylori_J99_expr_1)*33)
+Module_names <- rep(colnames(Helicobacter_pylori_J99_expr_1),33)
+lengthOfVector_col=ncol(Helicobacter_pylori_J99_expr_1)
+position_ME=1
+for(i in 1:lengthOfVector_col) {
+for(j in 1:33) {
+ME_lengthOfVector[position_ME] <- Helicobacter_pylori_J99_expr_1[j,i]
+Module_names[position_ME] <-      colnames(Helicobacter_pylori_J99_expr_1)[i]
+position_ME = position_ME+1
+}
+position_ME = i*33+1
+}
+stress=rep(generic_stress_sample_names,ncol(Helicobacter_pylori_J99_expr_1))
+stress_1 <- gsub("_1","", stress)
+stress_2 <- gsub("_2","", stress_1)
+stress_3 <- gsub("_3","", stress_2)
+stress=stress_3
+ME_Kruskall_dataset = as.data.frame(cbind(ME_lengthOfVector,stress, Module_names))
+colnames(ME_Kruskall_dataset) <- c("MEigengene", "Stress", "Module_names")
+Plot <- ggplot(ME_Kruskall_dataset, aes(x=ME_Kruskall_dataset[,2], y=as.numeric(ME_Kruskall_dataset[,1]))) +   geom_violin(trim=FALSE, fill='#A4A4A4')+ labs(y="Gene expression", x = "Stress conditions")
+Plot + theme_classic()
+
+kruskal.test(as.numeric(ME_Kruskall_dataset[,1])~ME_Kruskall_dataset[,2], data = ME_Kruskall_dataset)
+pairwise.wilcox.test(as.numeric(ME_Kruskall_dataset[,1]),ME_Kruskall_dataset[,2],p.adjust.method = "BH")
+## Module name
+positive_eigengene_name= which(ME > 0.25)
+negative_eigengene_name= which(ME  < -0.25)
+module_renamed="HP_J99_"
+if (length(positive_eigengene_name) > 0 && length(negative_eigengene_name)> 0) {
+  for (i in 1: length(positive_eigengene_name)){
+          module_renamed=paste(module_renamed,generic_stress_sample_names[positive_eigengene_name[i]],sep="")
+       }
+  module_renamed=paste(module_renamed,"_UP_",sep="")
+  for (i in 1: length(negative_eigengene_name)){
+             module_renamed=paste(module_renamed,generic_stress_sample_names[negative_eigengene_name[i]],sep="")
+         }
+  module_renamed=paste(module_renamed,"_DOWN",sep="")
+}else if (length(positive_eigengene_name)> 0){
+        for (i in 1: length(positive_eigengene_name)){
+          module_renamed=paste(module_renamed,generic_stress_sample_names[positive_eigengene_name[i]],sep="")
+       }
+  module_renamed=paste(module_renamed,"_UP",sep="")
+}else if (length(negative_eigengene_name)> 0){
+         for (i in 1: length(negative_eigengene_name)){
+             module_renamed=paste(module_renamed,generic_stress_sample_names[negative_eigengene_name[i]],sep="")
+         }
+    module_renamed=paste(module_renamed,"_DOWN",sep="")
+} else {
+   module_renamed=paste(module_renamed,which.module,sep="")}
+#####################################################
+module_renamed
+colnames(multi_species_df_HP_J99_temporary)=module_renamed
+multi_species_df_HP_J99=cbind(multi_species_df_HP_J99,multi_species_df_HP_J99_temporary)
+write.csv(Helicobacter_pylori_J99_expr_1,paste(module_renamed,".csv",sep=""))
+multi_species_df_HP_J99
+#################################################
+###########################################################3
+
+
+which.module="grey"
+ME=datME[, paste("ME",which.module, sep="")]
+ par(mfrow=c(2,1), mar=c(0.3, 5.5, 8, 2))
+plotMat(t(scale(Helicobacter_pylori_J99_expr[,colorh1==which.module ]) ),nrgcols=30,rlabels=F,rcols=which.module,clabels=rownames(Helicobacter_pylori_J99_expr), cex.main=2)
+colors_bar= ifelse(ME<0, "green", "red")
+ par(mar=c(5, 4.2, 0, 0.85))
+barplot(ME, col=t(colors_bar), main="", cex.main=2,ylab="eigengene expression",xlab=which.module)
+#########################################################
+multi_species_df_HP_J99_temporary = as.data.frame(ME)
+rownames(multi_species_df_HP_J99_temporary) =generic_stress_sample_names
+Helicobacter_pylori_J99_expr_1 = scale(Helicobacter_pylori_J99_expr[,colorh1==which.module ])
+ME_lengthOfVector=rep(NA, ncol(Helicobacter_pylori_J99_expr_1)*33)
+Module_names <- rep(colnames(Helicobacter_pylori_J99_expr_1),33)
+lengthOfVector_col=ncol(Helicobacter_pylori_J99_expr_1)
+position_ME=1
+for(i in 1:lengthOfVector_col) {
+for(j in 1:33) {
+ME_lengthOfVector[position_ME] <- Helicobacter_pylori_J99_expr_1[j,i]
+Module_names[position_ME] <-      colnames(Helicobacter_pylori_J99_expr_1)[i]
+position_ME = position_ME+1
+}
+position_ME = i*33+1
+}
+stress=rep(generic_stress_sample_names,ncol(Helicobacter_pylori_J99_expr_1))
+stress_1 <- gsub("_1","", stress)
+stress_2 <- gsub("_2","", stress_1)
+stress_3 <- gsub("_3","", stress_2)
+stress=stress_3
+ME_Kruskall_dataset = as.data.frame(cbind(ME_lengthOfVector,stress, Module_names))
+colnames(ME_Kruskall_dataset) <- c("MEigengene", "Stress", "Module_names")
+Plot <- ggplot(ME_Kruskall_dataset, aes(x=ME_Kruskall_dataset[,2], y=as.numeric(ME_Kruskall_dataset[,1]))) +   geom_violin(trim=FALSE, fill='#A4A4A4')+ labs(y="Gene expression", x = "Stress conditions")
+Plot + theme_classic()
+
+kruskal.test(as.numeric(ME_Kruskall_dataset[,1])~ME_Kruskall_dataset[,2], data = ME_Kruskall_dataset)
+pairwise.wilcox.test(as.numeric(ME_Kruskall_dataset[,1]),ME_Kruskall_dataset[,2],p.adjust.method = "BH")
+## Module name
+positive_eigengene_name= which(ME > 0.25)
+negative_eigengene_name= which(ME  < -0.25)
+module_renamed="HP_J99_"
+if (length(positive_eigengene_name) > 0 && length(negative_eigengene_name)> 0) {
+  for (i in 1: length(positive_eigengene_name)){
+          module_renamed=paste(module_renamed,generic_stress_sample_names[positive_eigengene_name[i]],sep="")
+       }
+  module_renamed=paste(module_renamed,"_UP_",sep="")
+  for (i in 1: length(negative_eigengene_name)){
+             module_renamed=paste(module_renamed,generic_stress_sample_names[negative_eigengene_name[i]],sep="")
+         }
+  module_renamed=paste(module_renamed,"_DOWN",sep="")
+}else if (length(positive_eigengene_name)> 0){
+        for (i in 1: length(positive_eigengene_name)){
+          module_renamed=paste(module_renamed,generic_stress_sample_names[positive_eigengene_name[i]],sep="")
+       }
+  module_renamed=paste(module_renamed,"_UP",sep="")
+}else if (length(negative_eigengene_name)> 0){
+         for (i in 1: length(negative_eigengene_name)){
+             module_renamed=paste(module_renamed,generic_stress_sample_names[negative_eigengene_name[i]],sep="")
+         }
+    module_renamed=paste(module_renamed,"_DOWN",sep="")
+} else {
+   module_renamed=paste(module_renamed,which.module,sep="")}
+#####################################################
+module_renamed="HP_J99_non_correlated"
+colnames(multi_species_df_HP_J99_temporary)=module_renamed
+multi_species_df_HP_J99=cbind(multi_species_df_HP_J99,multi_species_df_HP_J99_temporary)
+write.csv(Helicobacter_pylori_J99_expr_1,paste(module_renamed,".csv",sep=""))
+multi_species_df_HP_J99
+##################################################
+
+#################################################################
+###########################################################
+which.module="black"
+ME=datME[, paste("ME",which.module, sep="")]
+ par(mfrow=c(2,1), mar=c(0.3, 5.5, 8, 2))
+plotMat(t(scale(Helicobacter_pylori_J99_expr[,colorh1==which.module ]) ),nrgcols=30,rlabels=F,rcols=which.module,clabels=rownames(Helicobacter_pylori_J99_expr), cex.main=2)
+colors_bar= ifelse(ME<0, "green", "red")
+ par(mar=c(5, 4.2, 0, 0.85))
+barplot(ME, col=t(colors_bar), main="", cex.main=2,ylab="eigengene expression",xlab=which.module)
+####################################################################
+multi_species_df_HP_J99_temporary = as.data.frame(ME)
+rownames(multi_species_df_HP_J99_temporary) =generic_stress_sample_names
+Helicobacter_pylori_J99_expr_1 = scale(Helicobacter_pylori_J99_expr[,colorh1==which.module ])
+ME_lengthOfVector=rep(NA, ncol(Helicobacter_pylori_J99_expr_1)*33)
+Module_names <- rep(colnames(Helicobacter_pylori_J99_expr_1),33)
+lengthOfVector_col=ncol(Helicobacter_pylori_J99_expr_1)
+position_ME=1
+for(i in 1:lengthOfVector_col) {
+for(j in 1:33) {
+ME_lengthOfVector[position_ME] <- Helicobacter_pylori_J99_expr_1[j,i]
+Module_names[position_ME] <-      colnames(Helicobacter_pylori_J99_expr_1)[i]
+position_ME = position_ME+1
+}
+position_ME = i*33+1
+}
+stress=rep(generic_stress_sample_names,ncol(Helicobacter_pylori_J99_expr_1))
+stress_1 <- gsub("_1","", stress)
+stress_2 <- gsub("_2","", stress_1)
+stress_3 <- gsub("_3","", stress_2)
+stress=stress_3
+ME_Kruskall_dataset = as.data.frame(cbind(ME_lengthOfVector,stress, Module_names))
+colnames(ME_Kruskall_dataset) <- c("MEigengene", "Stress", "Module_names")
+Plot <- ggplot(ME_Kruskall_dataset, aes(x=ME_Kruskall_dataset[,2], y=as.numeric(ME_Kruskall_dataset[,1]))) +   geom_violin(trim=FALSE, fill='#A4A4A4')+ labs(y="Gene expression", x = "Stress conditions")
+Plot + theme_classic()
+
+kruskal.test(as.numeric(ME_Kruskall_dataset[,1])~ME_Kruskall_dataset[,2], data = ME_Kruskall_dataset)
+pairwise.wilcox.test(as.numeric(ME_Kruskall_dataset[,1]),ME_Kruskall_dataset[,2],p.adjust.method = "BH")
+## Module name
+positive_eigengene_name= which(ME > 0.25)
+negative_eigengene_name= which(ME  < -0.25)
+module_renamed="HP_J99_"
+if (length(positive_eigengene_name) > 0 && length(negative_eigengene_name)> 0) {
+  for (i in 1: length(positive_eigengene_name)){
+          module_renamed=paste(module_renamed,generic_stress_sample_names[positive_eigengene_name[i]],sep="")
+       }
+  module_renamed=paste(module_renamed,"_UP_",sep="")
+  for (i in 1: length(negative_eigengene_name)){
+             module_renamed=paste(module_renamed,generic_stress_sample_names[negative_eigengene_name[i]],sep="")
+         }
+  module_renamed=paste(module_renamed,"_DOWN",sep="")
+}else if (length(positive_eigengene_name)> 0){
+        for (i in 1: length(positive_eigengene_name)){
+          module_renamed=paste(module_renamed,generic_stress_sample_names[positive_eigengene_name[i]],sep="")
+       }
+  module_renamed=paste(module_renamed,"_UP",sep="")
+}else if (length(negative_eigengene_name)> 0){
+         for (i in 1: length(negative_eigengene_name)){
+             module_renamed=paste(module_renamed,generic_stress_sample_names[negative_eigengene_name[i]],sep="")
+         }
+    module_renamed=paste(module_renamed,"_DOWN",sep="")
+} else {
+   module_renamed=paste(module_renamed,which.module,sep="")}
+#####################################################
+module_renamed
+colnames(multi_species_df_HP_J99_temporary)=module_renamed
+multi_species_df_HP_J99=cbind(multi_species_df_HP_J99,multi_species_df_HP_J99_temporary)
+write.csv(Helicobacter_pylori_J99_expr_1,paste(module_renamed,".csv",sep=""))
+multi_species_df_HP_J99
+#################################################
+
+###########################################################
+which.module="green"
+ME=datME[, paste("ME",which.module, sep="")]
+ par(mfrow=c(2,1), mar=c(0.3, 5.5, 8, 2))
+plotMat(t(scale(Helicobacter_pylori_J99_expr[,colorh1==which.module ]) ),nrgcols=30,rlabels=F,rcols=which.module,clabels=rownames(Helicobacter_pylori_J99_expr), cex.main=2)
+colors_bar= ifelse(ME<0, "green", "red")
+ par(mar=c(5, 4.2, 0, 0.85))
+barplot(ME, col=t(colors_bar), main="", cex.main=2,ylab="eigengene expression",xlab=which.module)
+####################################################################
+multi_species_df_HP_J99_temporary = as.data.frame(ME)
+rownames(multi_species_df_HP_J99_temporary) =generic_stress_sample_names
+Helicobacter_pylori_J99_expr_1 = scale(Helicobacter_pylori_J99_expr[,colorh1==which.module ])
+ME_lengthOfVector=rep(NA, ncol(Helicobacter_pylori_J99_expr_1)*33)
+Module_names <- rep(colnames(Helicobacter_pylori_J99_expr_1),33)
+lengthOfVector_col=ncol(Helicobacter_pylori_J99_expr_1)
+position_ME=1
+for(i in 1:lengthOfVector_col) {
+for(j in 1:33) {
+ME_lengthOfVector[position_ME] <- Helicobacter_pylori_J99_expr_1[j,i]
+Module_names[position_ME] <-      colnames(Helicobacter_pylori_J99_expr_1)[i]
+position_ME = position_ME+1
+}
+position_ME = i*33+1
+}
+stress=rep(generic_stress_sample_names,ncol(Helicobacter_pylori_J99_expr_1))
+stress_1 <- gsub("_1","", stress)
+stress_2 <- gsub("_2","", stress_1)
+stress_3 <- gsub("_3","", stress_2)
+stress=stress_3
+ME_Kruskall_dataset = as.data.frame(cbind(ME_lengthOfVector,stress, Module_names))
+colnames(ME_Kruskall_dataset) <- c("MEigengene", "Stress", "Module_names")
+Plot <- ggplot(ME_Kruskall_dataset, aes(x=ME_Kruskall_dataset[,2], y=as.numeric(ME_Kruskall_dataset[,1]))) +   geom_violin(trim=FALSE, fill='#A4A4A4')+ labs(y="Gene expression", x = "Stress conditions")
+Plot + theme_classic()
+
+kruskal.test(as.numeric(ME_Kruskall_dataset[,1])~ME_Kruskall_dataset[,2], data = ME_Kruskall_dataset)
+pairwise.wilcox.test(as.numeric(ME_Kruskall_dataset[,1]),ME_Kruskall_dataset[,2],p.adjust.method = "BH")
+## Module name
+positive_eigengene_name= which(ME > 0.25)
+negative_eigengene_name= which(ME  < -0.25)
+module_renamed="HP_J99_"
+if (length(positive_eigengene_name) > 0 && length(negative_eigengene_name)> 0) {
+  for (i in 1: length(positive_eigengene_name)){
+          module_renamed=paste(module_renamed,generic_stress_sample_names[positive_eigengene_name[i]],sep="")
+       }
+  module_renamed=paste(module_renamed,"_UP_",sep="")
+  for (i in 1: length(negative_eigengene_name)){
+             module_renamed=paste(module_renamed,generic_stress_sample_names[negative_eigengene_name[i]],sep="")
+         }
+  module_renamed=paste(module_renamed,"_DOWN",sep="")
+}else if (length(positive_eigengene_name)> 0){
+        for (i in 1: length(positive_eigengene_name)){
+          module_renamed=paste(module_renamed,generic_stress_sample_names[positive_eigengene_name[i]],sep="")
+       }
+  module_renamed=paste(module_renamed,"_UP",sep="")
+}else if (length(negative_eigengene_name)> 0){
+         for (i in 1: length(negative_eigengene_name)){
+             module_renamed=paste(module_renamed,generic_stress_sample_names[negative_eigengene_name[i]],sep="")
+         }
+    module_renamed=paste(module_renamed,"_DOWN",sep="")
+} else {
+   module_renamed=paste(module_renamed,which.module,sep="")}
+#####################################################
+module_renamed
+colnames(multi_species_df_HP_J99_temporary)=module_renamed
+multi_species_df_HP_J99=cbind(multi_species_df_HP_J99,multi_species_df_HP_J99_temporary)
+write.csv(Helicobacter_pylori_J99_expr_1,paste(module_renamed,".csv",sep=""))
+multi_species_df_HP_J99
+#################################################
+#################################################################
+
+###########################################################
+which.module="red"
+ME=datME[, paste("ME",which.module, sep="")]
+ par(mfrow=c(2,1), mar=c(0.3, 5.5, 8, 2))
+plotMat(t(scale(Helicobacter_pylori_J99_expr[,colorh1==which.module ]) ),nrgcols=30,rlabels=F,rcols=which.module,clabels=rownames(Helicobacter_pylori_J99_expr), cex.main=2)
+colors_bar= ifelse(ME<0, "green", "red")
+ par(mar=c(5, 4.2, 0, 0.85))
+barplot(ME, col=t(colors_bar), main="", cex.main=2,ylab="eigengene expression",xlab=which.module)
+####################################################################
+multi_species_df_HP_J99_temporary = as.data.frame(ME)
+rownames(multi_species_df_HP_J99_temporary) =generic_stress_sample_names
+Helicobacter_pylori_J99_expr_1 = scale(Helicobacter_pylori_J99_expr[,colorh1==which.module ])
+ME_lengthOfVector=rep(NA, ncol(Helicobacter_pylori_J99_expr_1)*33)
+Module_names <- rep(colnames(Helicobacter_pylori_J99_expr_1),33)
+lengthOfVector_col=ncol(Helicobacter_pylori_J99_expr_1)
+position_ME=1
+for(i in 1:lengthOfVector_col) {
+for(j in 1:33) {
+ME_lengthOfVector[position_ME] <- Helicobacter_pylori_J99_expr_1[j,i]
+Module_names[position_ME] <-      colnames(Helicobacter_pylori_J99_expr_1)[i]
+position_ME = position_ME+1
+}
+position_ME = i*33+1
+}
+stress=rep(generic_stress_sample_names,ncol(Helicobacter_pylori_J99_expr_1))
+stress_1 <- gsub("_1","", stress)
+stress_2 <- gsub("_2","", stress_1)
+stress_3 <- gsub("_3","", stress_2)
+stress=stress_3
+ME_Kruskall_dataset = as.data.frame(cbind(ME_lengthOfVector,stress, Module_names))
+colnames(ME_Kruskall_dataset) <- c("MEigengene", "Stress", "Module_names")
+Plot <- ggplot(ME_Kruskall_dataset, aes(x=ME_Kruskall_dataset[,2], y=as.numeric(ME_Kruskall_dataset[,1]))) +   geom_violin(trim=FALSE, fill='#A4A4A4')+ labs(y="Gene expression", x = "Stress conditions")
+Plot + theme_classic()
+
+kruskal.test(as.numeric(ME_Kruskall_dataset[,1])~ME_Kruskall_dataset[,2], data = ME_Kruskall_dataset)
+pairwise.wilcox.test(as.numeric(ME_Kruskall_dataset[,1]),ME_Kruskall_dataset[,2],p.adjust.method = "BH")
+## Module name
+positive_eigengene_name= which(ME > 0.25)
+negative_eigengene_name= which(ME  < -0.25)
+module_renamed="HP_J99_"
+if (length(positive_eigengene_name) > 0 && length(negative_eigengene_name)> 0) {
+  for (i in 1: length(positive_eigengene_name)){
+          module_renamed=paste(module_renamed,generic_stress_sample_names[positive_eigengene_name[i]],sep="")
+       }
+  module_renamed=paste(module_renamed,"_UP_",sep="")
+  for (i in 1: length(negative_eigengene_name)){
+             module_renamed=paste(module_renamed,generic_stress_sample_names[negative_eigengene_name[i]],sep="")
+         }
+  module_renamed=paste(module_renamed,"_DOWN",sep="")
+}else if (length(positive_eigengene_name)> 0){
+        for (i in 1: length(positive_eigengene_name)){
+          module_renamed=paste(module_renamed,generic_stress_sample_names[positive_eigengene_name[i]],sep="")
+       }
+  module_renamed=paste(module_renamed,"_UP",sep="")
+}else if (length(negative_eigengene_name)> 0){
+         for (i in 1: length(negative_eigengene_name)){
+             module_renamed=paste(module_renamed,generic_stress_sample_names[negative_eigengene_name[i]],sep="")
+         }
+    module_renamed=paste(module_renamed,"_DOWN",sep="")
+} else {
+   module_renamed=paste(module_renamed,which.module,sep="")}
+#####################################################
+module_renamed
+colnames(multi_species_df_HP_J99_temporary)=module_renamed
+multi_species_df_HP_J99=cbind(multi_species_df_HP_J99,multi_species_df_HP_J99_temporary)
+write.csv(Helicobacter_pylori_J99_expr_1,paste(module_renamed,".csv",sep=""))
+multi_species_df_HP_J99
+#################################################
+
+###########################################################
+which.module="yellow"
+ME=datME[, paste("ME",which.module, sep="")]
+ par(mfrow=c(2,1), mar=c(0.3, 5.5, 8, 2))
+plotMat(t(scale(Helicobacter_pylori_J99_expr[,colorh1==which.module ]) ),nrgcols=30,rlabels=F,rcols=which.module,clabels=rownames(Helicobacter_pylori_J99_expr), cex.main=2)
+colors_bar= ifelse(ME<0, "green", "red")
+ par(mar=c(5, 4.2, 0, 0.85))
+barplot(ME, col=t(colors_bar), main="", cex.main=2,ylab="eigengene expression",xlab=which.module)
+####################################################################
+multi_species_df_HP_J99_temporary = as.data.frame(ME)
+rownames(multi_species_df_HP_J99_temporary) =generic_stress_sample_names
+Helicobacter_pylori_J99_expr_1 = scale(Helicobacter_pylori_J99_expr[,colorh1==which.module ])
+ME_lengthOfVector=rep(NA, ncol(Helicobacter_pylori_J99_expr_1)*33)
+Module_names <- rep(colnames(Helicobacter_pylori_J99_expr_1),33)
+lengthOfVector_col=ncol(Helicobacter_pylori_J99_expr_1)
+position_ME=1
+for(i in 1:lengthOfVector_col) {
+for(j in 1:33) {
+ME_lengthOfVector[position_ME] <- Helicobacter_pylori_J99_expr_1[j,i]
+Module_names[position_ME] <-      colnames(Helicobacter_pylori_J99_expr_1)[i]
+position_ME = position_ME+1
+}
+position_ME = i*33+1
+}
+stress=rep(generic_stress_sample_names,ncol(Helicobacter_pylori_J99_expr_1))
+stress_1 <- gsub("_1","", stress)
+stress_2 <- gsub("_2","", stress_1)
+stress_3 <- gsub("_3","", stress_2)
+stress=stress_3
+ME_Kruskall_dataset = as.data.frame(cbind(ME_lengthOfVector,stress, Module_names))
+colnames(ME_Kruskall_dataset) <- c("MEigengene", "Stress", "Module_names")
+Plot <- ggplot(ME_Kruskall_dataset, aes(x=ME_Kruskall_dataset[,2], y=as.numeric(ME_Kruskall_dataset[,1]))) +   geom_violin(trim=FALSE, fill='#A4A4A4')+ labs(y="Gene expression", x = "Stress conditions")
+Plot + theme_classic()
+
+kruskal.test(as.numeric(ME_Kruskall_dataset[,1])~ME_Kruskall_dataset[,2], data = ME_Kruskall_dataset)
+pairwise.wilcox.test(as.numeric(ME_Kruskall_dataset[,1]),ME_Kruskall_dataset[,2],p.adjust.method = "BH")
+## Module name
+positive_eigengene_name= which(ME > 0.25)
+negative_eigengene_name= which(ME  < -0.25)
+module_renamed="HP_J99_"
+if (length(positive_eigengene_name) > 0 && length(negative_eigengene_name)> 0) {
+  for (i in 1: length(positive_eigengene_name)){
+          module_renamed=paste(module_renamed,generic_stress_sample_names[positive_eigengene_name[i]],sep="")
+       }
+  module_renamed=paste(module_renamed,"_UP_",sep="")
+  for (i in 1: length(negative_eigengene_name)){
+             module_renamed=paste(module_renamed,generic_stress_sample_names[negative_eigengene_name[i]],sep="")
+         }
+  module_renamed=paste(module_renamed,"_DOWN",sep="")
+}else if (length(positive_eigengene_name)> 0){
+        for (i in 1: length(positive_eigengene_name)){
+          module_renamed=paste(module_renamed,generic_stress_sample_names[positive_eigengene_name[i]],sep="")
+       }
+  module_renamed=paste(module_renamed,"_UP",sep="")
+}else if (length(negative_eigengene_name)> 0){
+         for (i in 1: length(negative_eigengene_name)){
+             module_renamed=paste(module_renamed,generic_stress_sample_names[negative_eigengene_name[i]],sep="")
+         }
+    module_renamed=paste(module_renamed,"_DOWN",sep="")
+} else {
+   module_renamed=paste(module_renamed,which.module,sep="")}
+#####################################################
+module_renamed
+colnames(multi_species_df_HP_J99_temporary)=module_renamed
+multi_species_df_HP_J99=cbind(multi_species_df_HP_J99,multi_species_df_HP_J99_temporary)
+write.csv(Helicobacter_pylori_J99_expr_1,paste(module_renamed,".csv",sep=""))
+multi_species_df_HP_J99
+#################################################
+###########################################################
+which.module="pink"
+ME=datME[, paste("ME",which.module, sep="")]
+ par(mfrow=c(2,1), mar=c(0.3, 5.5, 8, 2))
+plotMat(t(scale(Helicobacter_pylori_J99_expr[,colorh1==which.module ]) ),nrgcols=30,rlabels=F,rcols=which.module,clabels=rownames(Helicobacter_pylori_J99_expr), cex.main=2)
+colors_bar= ifelse(ME<0, "green", "red")
+ par(mar=c(5, 4.2, 0, 0.85))
+barplot(ME, col=t(colors_bar), main="", cex.main=2,ylab="eigengene expression",xlab=which.module)
+####################################################################
+multi_species_df_HP_J99_temporary = as.data.frame(ME)
+rownames(multi_species_df_HP_J99_temporary) =generic_stress_sample_names
+Helicobacter_pylori_J99_expr_1 = scale(Helicobacter_pylori_J99_expr[,colorh1==which.module ])
+ME_lengthOfVector=rep(NA, ncol(Helicobacter_pylori_J99_expr_1)*33)
+Module_names <- rep(colnames(Helicobacter_pylori_J99_expr_1),33)
+lengthOfVector_col=ncol(Helicobacter_pylori_J99_expr_1)
+position_ME=1
+for(i in 1:lengthOfVector_col) {
+for(j in 1:33) {
+ME_lengthOfVector[position_ME] <- Helicobacter_pylori_J99_expr_1[j,i]
+Module_names[position_ME] <-      colnames(Helicobacter_pylori_J99_expr_1)[i]
+position_ME = position_ME+1
+}
+position_ME = i*33+1
+}
+stress=rep(generic_stress_sample_names,ncol(Helicobacter_pylori_J99_expr_1))
+stress_1 <- gsub("_1","", stress)
+stress_2 <- gsub("_2","", stress_1)
+stress_3 <- gsub("_3","", stress_2)
+stress=stress_3
+ME_Kruskall_dataset = as.data.frame(cbind(ME_lengthOfVector,stress, Module_names))
+colnames(ME_Kruskall_dataset) <- c("MEigengene", "Stress", "Module_names")
+Plot <- ggplot(ME_Kruskall_dataset, aes(x=ME_Kruskall_dataset[,2], y=as.numeric(ME_Kruskall_dataset[,1]))) +   geom_violin(trim=FALSE, fill='#A4A4A4')+ labs(y="Gene expression", x = "Stress conditions")
+Plot + theme_classic()
+
+kruskal.test(as.numeric(ME_Kruskall_dataset[,1])~ME_Kruskall_dataset[,2], data = ME_Kruskall_dataset)
+pairwise.wilcox.test(as.numeric(ME_Kruskall_dataset[,1]),ME_Kruskall_dataset[,2],p.adjust.method = "BH")
+## Module name
+positive_eigengene_name= which(ME > 0.25)
+negative_eigengene_name= which(ME  < -0.25)
+module_renamed="HP_J99_"
+if (length(positive_eigengene_name) > 0 && length(negative_eigengene_name)> 0) {
+  for (i in 1: length(positive_eigengene_name)){
+          module_renamed=paste(module_renamed,generic_stress_sample_names[positive_eigengene_name[i]],sep="")
+       }
+  module_renamed=paste(module_renamed,"_UP_",sep="")
+  for (i in 1: length(negative_eigengene_name)){
+             module_renamed=paste(module_renamed,generic_stress_sample_names[negative_eigengene_name[i]],sep="")
+         }
+  module_renamed=paste(module_renamed,"_DOWN",sep="")
+}else if (length(positive_eigengene_name)> 0){
+        for (i in 1: length(positive_eigengene_name)){
+          module_renamed=paste(module_renamed,generic_stress_sample_names[positive_eigengene_name[i]],sep="")
+       }
+  module_renamed=paste(module_renamed,"_UP",sep="")
+}else if (length(negative_eigengene_name)> 0){
+         for (i in 1: length(negative_eigengene_name)){
+             module_renamed=paste(module_renamed,generic_stress_sample_names[negative_eigengene_name[i]],sep="")
+         }
+    module_renamed=paste(module_renamed,"_DOWN",sep="")
+} else {
+   module_renamed=paste(module_renamed,which.module,sep="")}
+#####################################################
+module_renamed
+colnames(multi_species_df_HP_J99_temporary)=module_renamed
+multi_species_df_HP_J99=cbind(multi_species_df_HP_J99,multi_species_df_HP_J99_temporary)
+write.csv(Helicobacter_pylori_J99_expr_1,paste(module_renamed,".csv",sep=""))
+multi_species_df_HP_J99
+#################################################
+
+
+
+
+
+
+#################################
+df_Helicobacter_pylori_J99_kk_cor= as.data.frame(multi_species_df_HP_J99)
+m_BS_stress <- as.data.frame(matrix(0, nrow = 3, ncol = ncol(df_Helicobacter_pylori_J99_kk_cor)))
+
+colnames(m_BS_stress)=colnames(df_Helicobacter_pylori_J99_kk_cor)
+
+m_BS_stress_1 = rbind(df_Helicobacter_pylori_J99_kk_cor[c(1, 2, 3),],m_BS_stress)
+
+m_BS_stress_2 = df_Helicobacter_pylori_J99_kk_cor[4:33,]
+
+df_Helicobacter_pylori_J99_kk_cor2=rbind(m_BS_stress_1,m_BS_stress_2)
+
+rownames(df_Helicobacter_pylori_J99_kk_cor2)=c("As_1","As_2","As_3","Bs_1","Bs_2","Bs_3","Ctrl_1","Ctrl_2","Ctrl_3","Li_1","Li_2","Li_3","Mig_1","Mig_2","Mig_3","Nd_1","Nd_2","Nd_3","Ns_1","Ns_2","Ns_3","Oss_1","Oss_2","Oss_3","Oxs_1","Oxs_2","Oxs_3","Sp_1","Sp_2","Sp_3","Tm_1","Tm_2","Tm_3","Vic_1","Vic_2","Vic_3")
+
+multi_species_df_HP_J99=df_Helicobacter_pylori_J99_kk_cor2
+
+write.csv(multi_species_df_HP_J99,"multi_species_df_HP_J99.csv")
+#################################
+```
