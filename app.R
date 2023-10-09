@@ -6,6 +6,11 @@
 #
 #    http://shiny.rstudio.com/
 #
+# Author: Leyden Fernandez
+#Collaborator: Y Cansu O
+# Date: 28 Sept 2023
+# Description: Co-PATHOgenex, R shiny app for assessing complex stress responses in pathogenic bacteria
+
 
 library(BiocManager)
 options(repos = BiocManager::repositories())
@@ -20,401 +25,24 @@ library(DT)
 library(readr)
 library(readxl)
 library(RColorBrewer)
-library(heatmaply)
+#library(heatmaply)
 library(plotly)
 library(shinycssloaders)
 library(vembedr)
+library(memoise)
 
 options(stringsAsFactors = FALSE);
-##############EColi_EPEC#######
-#Reading the data
-Escherichia_coli_EPEC_0127_H6_E2348_69 = read.csv("Escherichia_coli_EPEC_0127_H6_E2348_69_R_input.csv", sep=";")
-dim(Escherichia_coli_EPEC_0127_H6_E2348_69) #analising input
 
-#getting TPM values
-Escherichia_coli_EPEC_0127_H6_E2348_69_expr =as.data.frame(Escherichia_coli_EPEC_0127_H6_E2348_69[,2:ncol(Escherichia_coli_EPEC_0127_H6_E2348_69)])
-dim(Escherichia_coli_EPEC_0127_H6_E2348_69_expr) #analysing dataset
+load_data <- memoise(function(filename) {
+  data <- read.csv(filename, sep=";")
+  expr <- as.data.frame(data[, 2:ncol(data)])
+  rownames(expr) <- data[, 1]
+  return(expr)
+})
 
-#transforming dataset to start running WGCNA functions
-rownames(Escherichia_coli_EPEC_0127_H6_E2348_69_expr) = Escherichia_coli_EPEC_0127_H6_E2348_69[,1]
 
 
 
-#########################ETEC#############################
-#Reading the data
-Escherichia_coli_ETEC_H10407 = read.csv("Escherichia_coli_ETEC_H10407_R_input.csv", sep=";")
-dim(Escherichia_coli_ETEC_H10407) #analising input
-
-#getting TPM values
-Escherichia_coli_ETEC_H10407_expr =as.data.frame(Escherichia_coli_ETEC_H10407[,2:ncol(Escherichia_coli_ETEC_H10407)])
-dim(Escherichia_coli_ETEC_H10407_expr) #analysing dataset
-
-#transforming dataset to start running WGCNA functions
-rownames(Escherichia_coli_ETEC_H10407_expr) = Escherichia_coli_ETEC_H10407[,1]
-
-
-
-#####################UPEC################################
-#Reading the data
-Escherichia_coli_UPEC_536 = read.csv("Escherichia_coli_UPEC_536_R_input.csv", sep=";")
-dim(Escherichia_coli_UPEC_536) #analising input
-
-#getting TPM values
-Escherichia_coli_UPEC_536_expr =as.data.frame(Escherichia_coli_UPEC_536[,2:ncol(Escherichia_coli_UPEC_536)])
-dim(Escherichia_coli_UPEC_536_expr) #analysing dataset
-
-#transforming dataset to start running WGCNA functions
-rownames(Escherichia_coli_UPEC_536_expr) = Escherichia_coli_UPEC_536[,1]
-
-#filtering out missing values
-
-
-
-
-##############################################################
-
-
-#######################HP_G27####################
-
-#Reading the data
-Helicobacter_pylori_G27 = read.csv("Helicobacter_pylori_G27_R_input2.csv", sep=";")
-dim(Helicobacter_pylori_G27) #analising input
-
-#getting TPM values
-Helicobacter_pylori_G27_expr =as.data.frame(Helicobacter_pylori_G27[,2:ncol(Helicobacter_pylori_G27)])
-dim(Helicobacter_pylori_G27_expr) #analysing dataset
-
-#transforming dataset to start running WGCNA functions
-rownames(Helicobacter_pylori_G27_expr) = Helicobacter_pylori_G27[,1]
-
-#########################Salmonella#############################
-Salmonella = read.csv("Salmonella_enterica_R_input.csv", sep=";")
-dim(Salmonella) #analising input
-
-#getting TPM values
-Salmonella_expr =as.data.frame(Salmonella[,2:ncol(Salmonella)])
-dim(Salmonella_expr) #analysing dataset
-
-#transforming dataset to start running WGCNA functions
-rownames(Salmonella_expr) = Salmonella[,1]
-
-############################################
-
-
-#######################HP_J99####################
-
-#Reading the data
-Helicobacter_pylori_J99 = read.csv("Helicobacter_pylori_J99_R_input2.csv", sep=";")
-dim(Helicobacter_pylori_J99) #analising input
-
-#getting TPM values
-Helicobacter_pylori_J99_expr =as.data.frame(Helicobacter_pylori_J99[,2:ncol(Helicobacter_pylori_J99)])
-dim(Helicobacter_pylori_J99_expr) #analysing dataset
-
-#transforming dataset to start running WGCNA functions
-rownames(Helicobacter_pylori_J99_expr) = Helicobacter_pylori_J99[,1]
-
-#############################################################
-#######################Acinetobacter_baumannii####################
-
-#Reading the data
-Acinetobacter_baumannii = read.csv("Acinetobacter_baumannii_R_input.csv", sep=";")
-dim(Acinetobacter_baumannii) #analising input
-
-#getting TPM values
-Acinetobacter_baumannii_expr =as.data.frame(Acinetobacter_baumannii[,2:ncol(Acinetobacter_baumannii)])
-dim(Acinetobacter_baumannii_expr) #analysing dataset
-
-#transforming dataset to start running WGCNA functions
-rownames(Acinetobacter_baumannii_expr) = Acinetobacter_baumannii[,1]
-
-#############################################################
-#######################Achromobacter_xylosoxidans####################
-
-#Reading the data
-Achromobacter_xylosoxidans = read.csv("Achromobacter_xylosoxidans_SOLR_R_input.csv", sep=";")
-dim(Achromobacter_xylosoxidans) #analising input
-
-#getting TPM values
-Achromobacter_xylosoxidans_expr =as.data.frame(Achromobacter_xylosoxidans[,2:ncol(Achromobacter_xylosoxidans)])
-dim(Achromobacter_xylosoxidans_expr) #analysing dataset
-
-#transforming dataset to start running WGCNA functions
-rownames(Achromobacter_xylosoxidans_expr) = Achromobacter_xylosoxidans[,1]
-
-#############################################################
-#######################Aggregatibacter_actinomycetemcomitans####################
-
-#Reading the data
-Aggregatibacter_actinomycetemcomitans= read.csv("Aggregatibacter_actinomycetemcomitans_R_input.csv", sep=";")
-dim(Aggregatibacter_actinomycetemcomitans) #analising input
-
-#getting TPM values
-Aggregatibacter_actinomycetemcomitans_expr =as.data.frame(Aggregatibacter_actinomycetemcomitans[,2:ncol(Aggregatibacter_actinomycetemcomitans)])
-dim(Aggregatibacter_actinomycetemcomitans_expr) #analysing dataset
-
-#transforming dataset to start running WGCNA functions
-rownames(Aggregatibacter_actinomycetemcomitans_expr) = Aggregatibacter_actinomycetemcomitans[,1]
-
-#######################Borrelia_burgdorferi####################
-
-#Reading the data
-Borrelia_burgdorferi= read.csv("Borrelia_burgdorferi_B31_R_input2.csv", sep=";")
-dim(Borrelia_burgdorferi) #analising input
-
-#getting TPM values
-Borrelia_burgdorferi_expr =as.data.frame(Borrelia_burgdorferi[,2:ncol(Borrelia_burgdorferi)])
-dim(Borrelia_burgdorferi_expr) #analysing dataset
-
-#transforming dataset to start running WGCNA functions
-rownames(Borrelia_burgdorferi_expr) = Borrelia_burgdorferi[,1]
-
-
-#######################Burkholderia_pseudomallei####################
-
-#Reading the data
-Burkholderia_pseudomallei = read.csv("Burkholderia_pseudomallei_R_input2.csv", sep=";")
-dim(Burkholderia_pseudomallei) #analising input
-
-#getting TPM values
-Burkholderia_pseudomallei_expr =as.data.frame(Burkholderia_pseudomallei[,2:ncol(Burkholderia_pseudomallei)])
-dim(Burkholderia_pseudomallei_expr) #analysing dataset
-
-#transforming dataset to start running WGCNA functions
-rownames(Burkholderia_pseudomallei_expr) = Burkholderia_pseudomallei[,1]
-
-
-#######################Campylobacter_jejuni####################
-
-#Reading the data
-Campylobacter_jejuni = read.csv("Campylobacter_jejuni_R_input.csv", sep=";")
-dim(Campylobacter_jejuni) #analising input
-
-#getting TPM values
-Campylobacter_jejuni_expr =as.data.frame(Campylobacter_jejuni[,2:ncol(Campylobacter_jejuni)])
-dim(Campylobacter_jejuni_expr) #analysing dataset
-
-#transforming dataset to start running WGCNA functions
-rownames(Campylobacter_jejuni_expr) = Campylobacter_jejuni[,1]
-
-
-###########################Francisella_tularensis################
-
-#Reading the data
-Francisella_tularensis = read.csv("Francisella_tularensis_R_input.csv", sep=";")
-dim(Francisella_tularensis) #analising input
-
-#getting TPM values
-Francisella_tularensis_expr =as.data.frame(Francisella_tularensis[,2:ncol(Francisella_tularensis)])
-dim(Francisella_tularensis_expr) #analysing dataset
-
-#transforming dataset to start running WGCNA functions
-rownames(Francisella_tularensis_expr) = Francisella_tularensis[,1]
-
-
-
-###########################Haemophilus_influenzae################
-
-#Reading the data
-Haemophilus_influenzae = read.csv("Haemophilus_influenzae_R_input2.csv", sep=";")
-dim(Haemophilus_influenzae) #analising input
-
-#getting TPM values
-Haemophilus_influenzae_expr =as.data.frame(Haemophilus_influenzae[,2:ncol(Haemophilus_influenzae)])
-dim(Haemophilus_influenzae_expr) #analysing dataset
-
-#transforming dataset to start running WGCNA functions
-rownames(Haemophilus_influenzae_expr) = Haemophilus_influenzae[,1]
-
-
-###########################Klebsiella_pneumoniae################
-
-#Reading the data
-Klebsiella_pneumoniae= read.csv("Klebsiella_pneumoniae_R_input.csv", sep=";")
-dim(Klebsiella_pneumoniae) #analising input
-
-#getting TPM values
-Klebsiella_pneumoniae_expr =as.data.frame(Klebsiella_pneumoniae[,2:ncol(Klebsiella_pneumoniae)])
-dim(Klebsiella_pneumoniae_expr) #analysing dataset
-
-#transforming dataset to start running WGCNA functions
-rownames(Klebsiella_pneumoniae_expr) = Klebsiella_pneumoniae[,1]
-
-###########################Legionella_pneumophila################
-
-#Reading the data
-Legionella_pneumophila= read.csv("Legionella_pneumophila_R_input2.csv", sep=";")
-dim(Legionella_pneumophila) #analising input
-
-#getting TPM values
-Legionella_pneumophila_expr =as.data.frame(Legionella_pneumophila[,2:ncol(Legionella_pneumophila)])
-dim(Legionella_pneumophila_expr) #analysing dataset
-
-#transforming dataset to start running WGCNA functions
-rownames(Legionella_pneumophila_expr) = Legionella_pneumophila[,1]
-
-###########################Listeria_monocytogenes################
-
-#Reading the data
-Listeria_monocytogenes= read.csv("Listeria_monocytogenes_R_input.csv", sep=";")
-dim(Listeria_monocytogenes) #analising input
-
-#getting TPM values
-Listeria_monocytogenes_expr =as.data.frame(Listeria_monocytogenes[,2:ncol(Listeria_monocytogenes)])
-dim(Listeria_monocytogenes_expr) #analysing dataset
-
-#transforming dataset to start running WGCNA functions
-rownames(Listeria_monocytogenes_expr) = Listeria_monocytogenes[,1]
-
-
-###########################Mycobacterium_tuberculosis################
-
-#Reading the data
-Mycobacterium_tuberculosis= read.csv("Mycobacterium_tuberculosis_R_input.csv", sep=";")
-dim(Mycobacterium_tuberculosis) #analising input
-
-#getting TPM values
-Mycobacterium_tuberculosis_expr =as.data.frame(Mycobacterium_tuberculosis[,2:ncol(Mycobacterium_tuberculosis)])
-dim(Mycobacterium_tuberculosis_expr) #analysing dataset
-
-#transforming dataset to start running WGCNA functions
-rownames(Mycobacterium_tuberculosis_expr) = Mycobacterium_tuberculosis[,1]
-
-
-###########################Neisseria_gonorrhoeae################
-
-#Reading the data
-Neisseria_gonorrhoeae= read.csv("Neisseria_gonorrhoeae_R_input.csv", sep=";")
-dim(Neisseria_gonorrhoeae) #analising input
-
-#getting TPM values
-Neisseria_gonorrhoeae_expr =as.data.frame(Neisseria_gonorrhoeae[,2:ncol(Neisseria_gonorrhoeae)])
-dim(Neisseria_gonorrhoeae_expr) #analysing dataset
-
-#transforming dataset to start running WGCNA functions
-rownames(Neisseria_gonorrhoeae_expr) = Neisseria_gonorrhoeae[,1]
-
-###########################Neisseria_meningitidis################
-
-#Reading the data
-Neisseria_meningitidis= read.csv("Neisseria_meningitidis_R_input.csv", sep=";")
-dim(Neisseria_meningitidis) #analising input
-
-#getting TPM values
-Neisseria_meningitidis_expr =as.data.frame(Neisseria_meningitidis[,2:ncol(Neisseria_meningitidis)])
-dim(Neisseria_meningitidis_expr) #analysing dataset
-
-#transforming dataset to start running WGCNA functions
-rownames(Neisseria_meningitidis_expr) = Neisseria_meningitidis[,1]
-
-###########################Pseudomonas_aeruginosa################
-
-#Reading the data
-Pseudomonas_aeruginosa= read.csv("Pseudomonas_aeruginosa_R_input.csv", sep=";")
-dim(Pseudomonas_aeruginosa) #analising input
-
-#getting TPM values
-Pseudomonas_aeruginosa_expr =as.data.frame(Pseudomonas_aeruginosa[,2:ncol(Pseudomonas_aeruginosa)])
-dim(Pseudomonas_aeruginosa_expr) #analysing dataset
-
-#transforming dataset to start running WGCNA functions
-rownames(Pseudomonas_aeruginosa_expr) = Pseudomonas_aeruginosa[,1]
-
-
-###########################Staphylococcus_aureus_MRSA252################
-
-#Reading the data
-Staphylococcus_aureus_MRSA252= read.csv("Staphylococcus_aureus_MRSA252_R_input.csv", sep=";")
-dim(Staphylococcus_aureus_MRSA252) #analising input
-
-#getting TPM values
-Staphylococcus_aureus_MRSA252_expr =as.data.frame(Staphylococcus_aureus_MRSA252[,2:ncol(Staphylococcus_aureus_MRSA252)])
-dim(Staphylococcus_aureus_MRSA252_expr) #analysing dataset
-
-#transforming dataset to start running WGCNA functions
-rownames(Staphylococcus_aureus_MRSA252_expr) = Staphylococcus_aureus_MRSA252[,1]
-
-
-###########################Staphylococcus_aureus_MSSA476################
-
-#Reading the data
-Staphylococcus_aureus_MSSA476= read.csv("Staphylococcus_aureus_MSSA476_R_input.csv", sep=";")
-dim(Staphylococcus_aureus_MSSA476) #analising input
-
-#getting TPM values
-Staphylococcus_aureus_MSSA476_expr =as.data.frame(Staphylococcus_aureus_MSSA476[,2:ncol(Staphylococcus_aureus_MSSA476)])
-dim(Staphylococcus_aureus_MSSA476_expr) #analysing dataset
-
-#transforming dataset to start running WGCNA functions
-rownames(Staphylococcus_aureus_MSSA476_expr) = Staphylococcus_aureus_MSSA476[,1]
-
-
-###########################Staphylococcus_epidermidis################
-
-#Reading the data
-Staphylococcus_epidermidis= read.csv("Staphylococcus_epidermidis_R_input.csv", sep=";")
-dim(Staphylococcus_epidermidis) #analising input
-
-#getting TPM values
-Staphylococcus_epidermidis_expr =as.data.frame(Staphylococcus_epidermidis[,2:ncol(Staphylococcus_epidermidis)])
-dim(Staphylococcus_epidermidis_expr) #analysing dataset
-
-#transforming dataset to start running WGCNA functions
-rownames(Staphylococcus_epidermidis_expr) = Staphylococcus_epidermidis[,1]
-
-###########################Streptococcus_agalactiae################
-
-#Reading the data
-Streptococcus_agalactiae= read.csv("Streptococcus_agalactiae_R_input.csv", sep=";")
-dim(Streptococcus_agalactiae) #analising input
-
-#getting TPM values
-Streptococcus_agalactiae_expr =as.data.frame(Streptococcus_agalactiae[,2:ncol(Streptococcus_agalactiae)])
-dim(Streptococcus_agalactiae_expr) #analysing dataset
-
-#transforming dataset to start running WGCNA functions
-rownames(Streptococcus_agalactiae_expr) = Streptococcus_agalactiae[,1]
-
-
-###########################Streptococcus_pneumoniae################
-
-#Reading the data
-Streptococcus_pneumoniae= read.csv("Streptococcus_pneumoniae_R_input.csv", sep=";")
-dim(Streptococcus_pneumoniae) #analising input
-
-#getting TPM values
-Streptococcus_pneumoniae_expr =as.data.frame(Streptococcus_pneumoniae[,2:ncol(Streptococcus_pneumoniae)])
-dim(Streptococcus_pneumoniae_expr) #analysing dataset
-
-#transforming dataset to start running WGCNA functions
-rownames(Streptococcus_pneumoniae_expr) = Streptococcus_pneumoniae[,1]
-
-###########################Streptococcus_pyogenes################
-
-#Reading the data
-Streptococcus_pyogenes= read.csv("Streptococcus_pyogenes_R_input.csv", sep=";")
-dim(Streptococcus_pyogenes) #analising input
-
-#getting TPM values
-Streptococcus_pyogenes_expr =as.data.frame(Streptococcus_pyogenes[,2:ncol(Streptococcus_pyogenes)])
-dim(Streptococcus_pyogenes_expr) #analysing dataset
-
-#transforming dataset to start running WGCNA functions
-rownames(Streptococcus_pyogenes_expr) = Streptococcus_pyogenes[,1]
-
-
-###########################Streptococcus_suis################
-
-#Reading the data
-Streptococcus_suis= read.csv("Streptococcus_suis_R_input.csv", sep=";")
-dim(Streptococcus_suis) #analising input
-
-#getting TPM values
-Streptococcus_suis_expr =as.data.frame(Streptococcus_suis[,2:ncol(Streptococcus_suis)])
-dim(Streptococcus_suis_expr) #analysing dataset
-
-#transforming dataset to start running WGCNA functions
-rownames(Streptococcus_suis_expr) = Streptococcus_suis[,1]
 
 #############################Yersinia###############################
 
@@ -426,46 +54,6 @@ Yersinia_pseudot_TPM_expr=as.data.frame(t(Yersinia_pseudot_TPM[,2:37]))
 names(Yersinia_pseudot_TPM_expr)=Yersinia_pseudot_TPM[,1]
 
 
-###########################Enterococcus_faecalis################
-
-#Reading the data
-Enterococcus_faecalis= read.csv("Enterococcus_faecalis_R_input.csv", sep=";")
-dim(Enterococcus_faecalis) #analising input
-
-#getting TPM values
-Enterococcus_faecalis_expr =as.data.frame(Enterococcus_faecalis[,2:ncol(Enterococcus_faecalis)])
-dim(Enterococcus_faecalis_expr) #analysing dataset
-
-#transforming dataset to start running WGCNA functions
-rownames(Enterococcus_faecalis_expr) = Enterococcus_faecalis[,1]
-
-
-###########################Shigella_flexneri################
-
-#Reading the data
-Shigella_flexneri= read.csv("Shigella_flexneri_R_input.csv", sep=";")
-dim(Shigella_flexneri) #analising input
-
-#getting TPM values
-Shigella_flexneri_expr =as.data.frame(Shigella_flexneri[,2:ncol(Shigella_flexneri)])
-dim(Shigella_flexneri_expr) #analysing dataset
-
-#transforming dataset to start running WGCNA functions
-rownames(Shigella_flexneri_expr) = Shigella_flexneri[,1]
-
-#################Vibrio_cholerae#####################
-
-#Reading the data
-Vibrio_cholerae= read.csv("Vibrio_cholerae_R_input.csv", sep=";")
-dim(Vibrio_cholerae) #analising input
-
-#getting TPM values
-Vibrio_cholerae_expr =as.data.frame(Vibrio_cholerae[,2:ncol(Vibrio_cholerae)])
-dim(Vibrio_cholerae_expr) #analysing dataset
-
-#transforming dataset to start running WGCNA functions
-rownames(Vibrio_cholerae_expr) = Vibrio_cholerae[,1]
-
 
 ##################PGFams##########################
 PGFams_locustags13df64a3fa583c4875d73be0d98473ba3c3d01cbe802357f34ddfce7e49976a1 <- read_excel("PGFams_locustags13df64a3fa583c4875d73be0d98473ba3c3d01cbe802357f34ddfce7e49976a1.xlsx")
@@ -474,296 +62,10 @@ Annotations_all_PGFAM <- PGFams_locustags13df64a3fa583c4875d73be0d98473ba3c3d01c
 
 Annotations_all_PGFAM_new <- Annotations_all_PGFAM[ which(Annotations_all_PGFAM$comp_genome_1_percent_identity > 0.95  & Annotations_all_PGFAM$comp_genome_1_seq_coverage > 0.90), ]
 Annotations_core <- read_csv("Annotations_core.csv")
-###################E_Coli_EPEC_UPEC_ETEC################################
-Locus_Tag_UPEC= colnames(Escherichia_coli_UPEC_536_expr)
-probes_UPEC = Locus_Tag_UPEC
-Genes=Annotations_all_PGFAM_new$ref_genome_pgfam_id[match(probes_UPEC,Annotations_all_PGFAM_new$comp_genome_1_patric_id)]
-UPEC_STRAIN_expr = as.data.frame(cbind(Genes,t(Escherichia_coli_UPEC_536_expr)))
-#attach(UPEC_STRAIN_expr)
-UPEC_STRAIN_expr_df = UPEC_STRAIN_expr[!is.na(UPEC_STRAIN_expr$Genes), ]
-UPEC_STRAIN_expr_df2= UPEC_STRAIN_expr_df[, 2:ncol(UPEC_STRAIN_expr_df)]
-UPEC_STRAIN_expr_df2[is.na(UPEC_STRAIN_expr_df2)] <- 0
-rownames(UPEC_STRAIN_expr_df2)= NULL
-rownames(UPEC_STRAIN_expr_df2)= make.names(UPEC_STRAIN_expr_df$Genes, unique=TRUE)
 
 
 
 
-Locus_Tag_EPEC= colnames(Escherichia_coli_EPEC_0127_H6_E2348_69_expr)
-probes_EPEC = Locus_Tag_EPEC
-Genes=Annotations_all_PGFAM_new$ref_genome_pgfam_id[match(probes_EPEC,Annotations_all_PGFAM_new$comp_genome_1_patric_id)]
-EPEC_STRAIN_expr = as.data.frame(cbind(Genes,t(Escherichia_coli_EPEC_0127_H6_E2348_69_expr)))
-EPEC_STRAIN_expr_df = EPEC_STRAIN_expr[!is.na(EPEC_STRAIN_expr$Genes), ]
-EPEC_STRAIN_expr_df2= EPEC_STRAIN_expr_df[, 2:ncol(EPEC_STRAIN_expr_df)]
-EPEC_STRAIN_expr_df2[is.na(EPEC_STRAIN_expr_df2)] <- 0
-rownames(EPEC_STRAIN_expr_df2)= NULL
-rownames(EPEC_STRAIN_expr_df2)= make.names(EPEC_STRAIN_expr_df$Genes, unique=TRUE)
-
-
-Locus_Tag_ETEC= colnames(Escherichia_coli_ETEC_H10407_expr)
-probes_ETEC = Locus_Tag_ETEC
-Genes=Annotations_all_PGFAM_new$ref_genome_pgfam_id[match(probes_ETEC,Annotations_all_PGFAM_new$comp_genome_1_patric_id)]
-ETEC_STRAIN_expr = as.data.frame(cbind(Genes,t(Escherichia_coli_ETEC_H10407_expr)))
-#attach(ETEC_STRAIN_expr)
-ETEC_STRAIN_expr_df = ETEC_STRAIN_expr[!is.na(ETEC_STRAIN_expr$Genes), ]
-ETEC_STRAIN_expr_df2= ETEC_STRAIN_expr_df[, 2:ncol(ETEC_STRAIN_expr_df)]
-ETEC_STRAIN_expr_df2[is.na(ETEC_STRAIN_expr_df2)] <- 0
-rownames(ETEC_STRAIN_expr_df2)= NULL
-rownames(ETEC_STRAIN_expr_df2)= make.names(ETEC_STRAIN_expr_df$Genes, unique=TRUE)
-
-#####UPECandEPEC#######
-
-UPEC_STRAIN_expr_t= t(UPEC_STRAIN_expr)
-EPEC_STRAIN_expr_t= t(EPEC_STRAIN_expr)
-list_of_data = list(UPEC_STRAIN_expr_df2,EPEC_STRAIN_expr_df2)
-common_names = Reduce(intersect, lapply(list_of_data, row.names))
-list_of_data = lapply(list_of_data, function(x) { x[row.names(x) %in% common_names,] })
-
-UPEC_commongenes_1 = as.data.frame(list_of_data[1])
-EPEC_commongenes_1 = as.data.frame(list_of_data[2])
-
-UPEC_commongenes=as.data.frame(sapply(UPEC_commongenes_1, as.numeric))
-rownames(UPEC_commongenes)= rownames(UPEC_commongenes_1)
-EPEC_commongenes=as.data.frame(sapply(EPEC_commongenes_1, as.numeric))
-rownames(EPEC_commongenes)= rownames(EPEC_commongenes_1)
-
-nSets=2
-setLabels_analysis=NULL
-setLabels_analysis["UPEC vs EPEC"] = list(c("Strain UPEC", "Strain EPEC"))
-shortLabels = c("UPEC", "EPEC")
-UPEC_EPEC_multiExpr = vector(mode = "list", length = nSets)
-
-UPEC_commongenes_t = t(UPEC_commongenes)
-EPEC_commongenes_t = t(EPEC_commongenes)
-UPEC_commongenes_t_ord = UPEC_commongenes_t[ , order(colnames(UPEC_commongenes_t))]
-EPEC_commongenes_t_ord = EPEC_commongenes_t[ , order(colnames(EPEC_commongenes_t))]
-
-UPEC_EPEC_multiExpr[[1]] = list(data = UPEC_commongenes_t_ord)
-UPEC_EPEC_multiExpr[[2]] = list(data = EPEC_commongenes_t_ord)
-names(UPEC_EPEC_multiExpr[[1]]$data) = colnames(UPEC_commongenes_t_ord)
-names(UPEC_EPEC_multiExpr[[2]]$data) = colnames(EPEC_commongenes_t_ord)
-
-
-
-#####UPECandETEC#######
-
-UPEC_STRAIN_expr_t= t(UPEC_STRAIN_expr)
-ETEC_STRAIN_expr_t= t(ETEC_STRAIN_expr)
-list_of_data = list(UPEC_STRAIN_expr_df2,ETEC_STRAIN_expr_df2)
-common_names = Reduce(intersect, lapply(list_of_data, row.names))
-list_of_data = lapply(list_of_data, function(x) { x[row.names(x) %in% common_names,] })
-
-UPEC_commongenes_1 = as.data.frame(list_of_data[1])
-ETEC_commongenes_1 = as.data.frame(list_of_data[2])
-
-UPEC_commongenes=as.data.frame(sapply(UPEC_commongenes_1, as.numeric))
-rownames(UPEC_commongenes)= rownames(UPEC_commongenes_1)
-ETEC_commongenes=as.data.frame(sapply(ETEC_commongenes_1, as.numeric))
-rownames(ETEC_commongenes)= rownames(ETEC_commongenes_1)
-
-nSets=2
-setLabels_analysis["UPEC vs ETEC"]= list(c("Strain UPEC", "Strain ETEC"))
-shortLabels = c("UPEC", "ETEC")
-UPEC_ETEC_multiExpr = vector(mode = "list", length = nSets)
-
-UPEC_commongenes_t = t(UPEC_commongenes)
-ETEC_commongenes_t = t(ETEC_commongenes)
-UPEC_commongenes_t_ord = UPEC_commongenes_t[ , order(colnames(UPEC_commongenes_t))]
-ETEC_commongenes_t_ord = ETEC_commongenes_t[ , order(colnames(ETEC_commongenes_t))]
-
-UPEC_ETEC_multiExpr[[1]] = list(data = UPEC_commongenes_t_ord)
-UPEC_ETEC_multiExpr[[2]] = list(data = ETEC_commongenes_t_ord)
-
-names(UPEC_ETEC_multiExpr[[1]]$data) = colnames(UPEC_commongenes_t_ord)
-names(UPEC_ETEC_multiExpr[[2]]$data) = colnames(ETEC_commongenes_t_ord)
-
-#####EPECandETEC#######
-
-EPEC_STRAIN_expr_t= t(EPEC_STRAIN_expr)
-ETEC_STRAIN_expr_t= t(ETEC_STRAIN_expr)
-list_of_data = list(EPEC_STRAIN_expr_df2,ETEC_STRAIN_expr_df2)
-common_names = Reduce(intersect, lapply(list_of_data, row.names))
-list_of_data = lapply(list_of_data, function(x) { x[row.names(x) %in% common_names,] })
-
-EPEC_commongenes_1 = as.data.frame(list_of_data[1])
-ETEC_commongenes_1 = as.data.frame(list_of_data[2])
-
-EPEC_commongenes=as.data.frame(sapply(EPEC_commongenes_1, as.numeric))
-rownames(EPEC_commongenes)= rownames(EPEC_commongenes_1)
-ETEC_commongenes=as.data.frame(sapply(ETEC_commongenes_1, as.numeric))
-rownames(ETEC_commongenes)= rownames(ETEC_commongenes_1)
-
-nSets=2
-setLabels_analysis["EPEC vs ETEC"]= list(c("Strain EPEC", "Strain ETEC"))
-shortLabels = c("EPEC", "ETEC")
-EPEC_ETEC_multiExpr = vector(mode = "list", length = nSets)
-
-EPEC_commongenes_t = t(EPEC_commongenes)
-ETEC_commongenes_t = t(ETEC_commongenes)
-EPEC_commongenes_t_ord = EPEC_commongenes_t[ , order(colnames(EPEC_commongenes_t))]
-ETEC_commongenes_t_ord = ETEC_commongenes_t[ , order(colnames(ETEC_commongenes_t))]
-
-EPEC_ETEC_multiExpr[[1]] = list(data = EPEC_commongenes_t_ord)
-EPEC_ETEC_multiExpr[[2]] = list(data = ETEC_commongenes_t_ord)
-
-names(EPEC_ETEC_multiExpr[[1]]$data) = colnames(EPEC_commongenes_t_ord)
-names(EPEC_ETEC_multiExpr[[2]]$data) = colnames(ETEC_commongenes_t_ord)
-
-##The three strains together#####
-
-EPEC_STRAIN_expr_t= t(EPEC_STRAIN_expr)
-ETEC_STRAIN_expr_t= t(ETEC_STRAIN_expr)
-UPEC_STRAIN_expr_t= t(UPEC_STRAIN_expr)
-list_of_data = list(EPEC_STRAIN_expr_df2,ETEC_STRAIN_expr_df2,UPEC_STRAIN_expr_df2)
-common_names = Reduce(intersect, lapply(list_of_data, row.names))
-list_of_data = lapply(list_of_data, function(x) { x[row.names(x) %in% common_names,] })
-
-EPEC_commongenes_1 = as.data.frame(list_of_data[1])
-ETEC_commongenes_1= as.data.frame(list_of_data[2])
-UPEC_commongenes_1= as.data.frame(list_of_data[3])
-
-EPEC_commongenes=as.data.frame(sapply(EPEC_commongenes_1, as.numeric))
-rownames(EPEC_commongenes)= rownames(EPEC_commongenes_1)
-ETEC_commongenes=as.data.frame(sapply(ETEC_commongenes_1, as.numeric))
-rownames(ETEC_commongenes)= rownames(ETEC_commongenes_1)
-UPEC_commongenes=as.data.frame(sapply(UPEC_commongenes_1, as.numeric))
-rownames(UPEC_commongenes)= rownames(UPEC_commongenes_1)
-
-
-nSets=3
-setLabels_analysis["EPEC vs ETEC vs UPEC"]= list(c("Strain EPEC", "Strain ETEC","Strain UPEC" ))
-setLabels = c("EPEC", "ETEC", "UPEC")
-EPEC_ETEC_UPEC_multiExpr = vector(mode = "list", length = nSets)
-
-EPEC_commongenes_t = t(EPEC_commongenes)
-ETEC_commongenes_t = t(ETEC_commongenes)
-
-UPEC_commongenes_t = t(UPEC_commongenes)
-UPEC_commongenes_t_ord = UPEC_commongenes_t[ , order(colnames(UPEC_commongenes_t))]
-
-
-EPEC_commongenes_t_ord = EPEC_commongenes_t[ , order(colnames(EPEC_commongenes_t))]
-ETEC_commongenes_t_ord = ETEC_commongenes_t[ , order(colnames(ETEC_commongenes_t))]
-
-EPEC_ETEC_UPEC_multiExpr[[1]] = list(data = EPEC_commongenes_t_ord)
-EPEC_ETEC_UPEC_multiExpr[[2]] = list(data = ETEC_commongenes_t_ord)
-EPEC_ETEC_UPEC_multiExpr[[3]] = list(data = UPEC_commongenes_t_ord)
-
-names(EPEC_ETEC_UPEC_multiExpr[[1]]$data) = colnames(EPEC_commongenes_t_ord)
-names(EPEC_ETEC_UPEC_multiExpr[[2]]$data) = colnames(ETEC_commongenes_t_ord)
-names(EPEC_ETEC_UPEC_multiExpr[[3]]$data) = colnames(UPEC_commongenes_t_ord)
-
-
-
-
-###################HP_G27_HP_J99################################
-Locus_Tag_HP_G27= colnames(Helicobacter_pylori_G27_expr)
-probes_HP_G27 = Locus_Tag_HP_G27
-Genes=Annotations_all_PGFAM_new$ref_genome_pgfam_id[match(probes_HP_G27,Annotations_all_PGFAM_new$comp_genome_1_patric_id)]
-HP_G27_STRAIN_expr = as.data.frame(cbind(Genes,t(Helicobacter_pylori_G27_expr)))
-#attach(HP_G27_STRAIN_expr)
-HP_G27_STRAIN_expr_df = HP_G27_STRAIN_expr[!is.na(HP_G27_STRAIN_expr$Genes), ]
-HP_G27_STRAIN_expr_df2= HP_G27_STRAIN_expr_df[, 2:ncol(HP_G27_STRAIN_expr_df)]
-HP_G27_STRAIN_expr_df2[is.na(HP_G27_STRAIN_expr_df2)] <- 0
-rownames(HP_G27_STRAIN_expr_df2)= NULL
-rownames(HP_G27_STRAIN_expr_df2)= make.names(HP_G27_STRAIN_expr_df$Genes, unique=TRUE)
-
-
-Locus_Tag_HP_J99= colnames(Helicobacter_pylori_J99_expr)
-probes_HP_J99 = Locus_Tag_HP_J99
-Genes=Annotations_all_PGFAM_new$ref_genome_pgfam_id[match(probes_HP_J99,Annotations_all_PGFAM_new$comp_genome_1_patric_id)]
-HP_J99_STRAIN_expr = as.data.frame(cbind(Genes,t(Helicobacter_pylori_J99_expr)))
-#attach(HP_J99_STRAIN_expr)
-HP_J99_STRAIN_expr_df = HP_J99_STRAIN_expr[!is.na(HP_J99_STRAIN_expr$Genes), ]
-HP_J99_STRAIN_expr_df2= HP_J99_STRAIN_expr_df[, 2:ncol(HP_J99_STRAIN_expr_df)]
-HP_J99_STRAIN_expr_df2[is.na(HP_J99_STRAIN_expr_df2)] <- 0
-rownames(HP_J99_STRAIN_expr_df2)= NULL
-rownames(HP_J99_STRAIN_expr_df2)= make.names(HP_J99_STRAIN_expr_df$Genes, unique=TRUE)
-
-HP_J99_STRAIN_expr_t= t(HP_J99_STRAIN_expr)
-HP_G27_STRAIN_expr_t= t(HP_G27_STRAIN_expr)
-list_of_data = list(HP_J99_STRAIN_expr_df2,HP_G27_STRAIN_expr_df2)
-common_names = Reduce(intersect, lapply(list_of_data, row.names))
-list_of_data = lapply(list_of_data, function(x) { x[row.names(x) %in% common_names,] })
-
-HP_J99_commongenes_1 = as.data.frame(list_of_data[1])
-HP_G27_commongenes_1 = as.data.frame(list_of_data[2])
-
-HP_J99_commongenes=as.data.frame(sapply(HP_J99_commongenes_1, as.numeric))
-rownames(HP_J99_commongenes)= rownames(HP_J99_commongenes_1)
-HP_G27_commongenes=as.data.frame(sapply(HP_G27_commongenes_1, as.numeric))
-rownames(HP_G27_commongenes)= rownames(HP_G27_commongenes_1)
-
-nSets=2
-setLabels_analysis["HP_J99 vs HP_G27"]= list(c("Strain HP_J99", "Strain HP_G27"))
-shortLabels = c("HP_J99", "HP_G27")
-HP_J99_HP_G27_multiExpr = vector(mode = "list", length = nSets)
-
-HP_J99_commongenes_t = t(HP_J99_commongenes)
-HP_G27_commongenes_t = t(HP_G27_commongenes)
-HP_J99_commongenes_t_ord = HP_J99_commongenes_t[ , order(colnames(HP_J99_commongenes_t))]
-HP_G27_commongenes_t_ord = HP_G27_commongenes_t[ , order(colnames(HP_G27_commongenes_t))]
-
-HP_J99_HP_G27_multiExpr[[1]] = list(data = HP_J99_commongenes_t_ord)
-HP_J99_HP_G27_multiExpr[[2]] = list(data = HP_G27_commongenes_t_ord)
-
-names(HP_J99_HP_G27_multiExpr[[1]]$data) = colnames(HP_J99_commongenes_t_ord)
-names(HP_J99_HP_G27_multiExpr[[2]]$data) = colnames(HP_G27_commongenes_t_ord)
-
-
-###################MRSA252_MSSA476################################
-Locus_Tag_MSSA476= colnames(Staphylococcus_aureus_MSSA476_expr)
-probes_MSSA476 = Locus_Tag_MSSA476
-Genes=Annotations_all_PGFAM_new$ref_genome_pgfam_id[match(probes_MSSA476,Annotations_all_PGFAM_new$comp_genome_1_patric_id)]
-MSSA476_STRAIN_expr = as.data.frame(cbind(Genes,t(Staphylococcus_aureus_MSSA476_expr)))
-#attach(MSSA476_STRAIN_expr)
-MSSA476_STRAIN_expr_df = MSSA476_STRAIN_expr[!is.na(MSSA476_STRAIN_expr$Genes), ]
-MSSA476_STRAIN_expr_df2= MSSA476_STRAIN_expr_df[, 2:ncol(MSSA476_STRAIN_expr_df)]
-MSSA476_STRAIN_expr_df2[is.na(MSSA476_STRAIN_expr_df2)] <- 0
-rownames(MSSA476_STRAIN_expr_df2)= NULL
-rownames(MSSA476_STRAIN_expr_df2)= make.names(MSSA476_STRAIN_expr_df$Genes, unique=TRUE)
-
-Locus_Tag_MRSA252= colnames(Staphylococcus_aureus_MRSA252_expr)
-probes_MRSA252 = Locus_Tag_MRSA252
-Genes=Annotations_all_PGFAM_new$ref_genome_pgfam_id[match(probes_MRSA252,Annotations_all_PGFAM_new$comp_genome_1_patric_id)]
-MRSA252_STRAIN_expr = as.data.frame(cbind(Genes,t(Staphylococcus_aureus_MRSA252_expr)))
-#attach(MRSA252_STRAIN_expr)
-MRSA252_STRAIN_expr_df = MRSA252_STRAIN_expr[!is.na(MRSA252_STRAIN_expr$Genes), ]
-MRSA252_STRAIN_expr_df2= MRSA252_STRAIN_expr_df[, 2:ncol(MRSA252_STRAIN_expr_df)]
-MRSA252_STRAIN_expr_df2[is.na(MRSA252_STRAIN_expr_df2)] <- 0
-rownames(MRSA252_STRAIN_expr_df2)= NULL
-rownames(MRSA252_STRAIN_expr_df2)= make.names(MRSA252_STRAIN_expr_df$Genes, unique=TRUE)
-
-
-MSSA476_STRAIN_expr_t= t(MSSA476_STRAIN_expr)
-MRSA252_STRAIN_expr_t= t(MRSA252_STRAIN_expr)
-list_of_data = list(MSSA476_STRAIN_expr_df2,MRSA252_STRAIN_expr_df2)
-common_names = Reduce(intersect, lapply(list_of_data, row.names))
-list_of_data = lapply(list_of_data, function(x) { x[row.names(x) %in% common_names,] })
-
-MSSA476_commongenes_1 = as.data.frame(list_of_data[1])
-MRSA252_commongenes_1 = as.data.frame(list_of_data[2])
-
-MSSA476_commongenes=as.data.frame(sapply(MSSA476_commongenes_1, as.numeric))
-rownames(MSSA476_commongenes)= rownames(MSSA476_commongenes_1)
-MRSA252_commongenes=as.data.frame(sapply(MRSA252_commongenes_1, as.numeric))
-rownames(MRSA252_commongenes)= rownames(MRSA252_commongenes_1)
-
-nSets=2
-setLabels_analysis["MSSA476 vs MRSA252"]= list(c("Strain MSSA476", "Strain MRSA252"))
-shortLabels = c("MSSA476", "MRSA252")
-MSSA476_MRSA252_multiExpr = vector(mode = "list", length = nSets)
-
-MSSA476_commongenes_t = t(MSSA476_commongenes)
-MRSA252_commongenes_t = t(MRSA252_commongenes)
-MSSA476_commongenes_t_ord = MSSA476_commongenes_t[ , order(colnames(MSSA476_commongenes_t))]
-MRSA252_commongenes_t_ord = MRSA252_commongenes_t[ , order(colnames(MRSA252_commongenes_t))]
-
-MSSA476_MRSA252_multiExpr[[1]] = list(data = MSSA476_commongenes_t_ord)
-MSSA476_MRSA252_multiExpr[[2]] = list(data = MRSA252_commongenes_t_ord)
-
-names(MSSA476_MRSA252_multiExpr[[1]]$data) = colnames(MSSA476_commongenes_t_ord)
-names(MSSA476_MRSA252_multiExpr[[2]]$data) = colnames(MRSA252_commongenes_t_ord)
 
 #################################ACID_STRESS###################
 ########UPEC_As_Sp###############
@@ -3460,23 +2762,37 @@ ui <- fluidPage(theme = shinytheme("cosmo"),
                                         submitButton("Update View", icon("refresh")),
                                         br(), 
                                         br()
-                                 ),
-                                 
+                                       
+                                        
+                                 )
+                                
                                ),
-                               
-                               mainPanel("Display species information:", 
+                
+                 
+                   
+                               mainPanel(
+                                 p("Strains included in Co-PATHOgenex:"),
+                                 tags$ul(
+                                   tags$li(tags$i("H. pylori"), " - J99, G27"),
+                                   tags$li(tags$i("E. coli"), " - EPEC, ETEC, UPEC"),
+                                   tags$li(tags$i("S. aureus"), " - MSSA476, MRSA252")), 
+                                 
+                                 
+                                 "Display information for the strains:", 
                                          
                                          textOutput(outputId ="summary_datasetin_core1" )%>% withSpinner(type=5),
                                          fluidRow(
                                            #splitLayout(cellWidths = c("50%", "50%"), plotOutput("clusterone"), plotOutput("powerplot1"))
                                            column(2, align="right",
                                                   plotOutput(outputId = "clustertwo", width  = "600px",height = "400px"),  
-                                                  plotOutput(outputId = "powerplot2", width  = "600px",height = "400px")  
+                                                  plotOutput(outputId = "powerplot2", width  = "600px",height = "400px"),
+                                                  
+                                                
                                                   
                                                   #plotOutput(outputId = "clusterone", width  = "500px",height = "400px")
                                            ),
                                            
-                                           
+                                          
                                            
                                            
                                          ))) 
@@ -3583,7 +2899,14 @@ ui <- fluidPage(theme = shinytheme("cosmo"),
                  dataTableOutput(outputId = "mytable_core") %>% withSpinner(type = 5)   ),  
           #tabPanel("Modules eigengene",dataTableOutput("mytable_core")), 
           tabPanel("Consensus between strains",
-                   h4("Relating the consensus modules of two selected strains:"),
+                   h4("Relating the consensus modules of two selected strains"),
+                   p("Panels in the figure:"),
+                   tags$ul(
+                     tags$li(tags$b("A"), " -  Hierarchical clustering generated using the eigengene values of modules in the consensus network of Strain 1"),
+                     tags$li(tags$b("B"), " -  Hierarchical clustering generated using the eigengene values of modules in the consensus network of Strain 2"),
+                     tags$li(tags$b("C"), " -  Heatmap illustrating the absolute value of the correlation coefficient for pairwise comparisons of module eigengenes within Strain 1"),
+                     tags$li(tags$b("D"), " -  Heatmap illustrating the absolute value of the correlation coefficient for pairwise comparisons of module eigengenes within Strain 2"),
+                     tags$li(tags$b("E"), " -  Heatmap visualizing the correlation coefficient for pairwise comparisons of module eigengenes between Strain 1 and Strain 2")),
                    # actionButton("update" ,"Update View", icon("arrows-rotate"),
                    #              class = "btn btn-primary"),
                    # helpText("When you click the button above, you should see",
@@ -3591,6 +2914,7 @@ ui <- fluidPage(theme = shinytheme("cosmo"),
                    #          "entered at the Construction tab"),
                    #verbatimTextOutput("powerin_core"),
                    plotOutput("consensus_graph_core") %>% withSpinner(type = 5)),
+                   #plotOutput("consensus_graph_core2") %>% withSpinner(type = 5)),
         tabPanel("Gene expression",
                  # actionButton("update" ,"Update View", icon("arrows-rotate"),
                  #              class = "refresh"),
@@ -3641,9 +2965,26 @@ ui <- fluidPage(theme = shinytheme("cosmo"),
                      
                    ),                 
                    
-                   mainPanel(plotOutput("myresultscolor_core")),
+                   mainPanel(plotOutput("myresultscolor_core"),
                      
-                     
+                   br(),
+                   br(), 
+                   br(),
+                   br(),
+                   br(),
+                   br(),
+                   hr(), 
+                   downloadButton(
+                     outputId = "download_heatmap_core",
+                     label = "Download heatmap"
+                   ),
+                   
+                   downloadButton(
+                     outputId = "download_barplot_core",
+                     label = "Download barplot"
+                   )           
+                   
+                   ) 
                      
                      # br(),
                      # br(), 
@@ -3810,11 +3151,33 @@ ui <- fluidPage(theme = shinytheme("cosmo"),
                                 tags$li(tags$b("Sp"), " - Stationary phase"),
                                 tags$li(tags$b("Tm"), " - Temperature"),
                                 tags$li(tags$b("Vic"), " - Virulence inducing condition"),
-                              )
+                              ),
+                              hr(), # Adding a horizontal line for clear separation
                               
+                              # Content for Mann-Whitney U test
+                              tableOutput("mytableAs2"),
+                              br(),
+                              tags$p("Table represents pairwise comparisons using the Mann-Whitney U test (Wilcoxon rank-sum test in R)."),
+                              tags$p("*** p < 0.001"),
+                              tags$p("** p < 0.01"),
+                              tags$p("* p < 0.05")
+                            #)             
                               
                               
                             ),
+                            
+                            #tabPanel(
+                              
+                              #"Mann-Whitney U test ",
+                              
+                             # tableOutput("mytableAs2") ,
+                              #br(), # Line break for spacing
+                              #tags$p("Table represents pairwise comparisons using the Mann-Whitney U test (Wilcoxon rank-sum test in R)."),
+                              #tags$p("*** p < 0.001"),
+                              #tags$p("** p < 0.01"),
+                              #tags$p("* p < 0.05"),
+                              
+                            #),
                             
                             tabPanel(
                               
@@ -3988,8 +3351,17 @@ ui <- fluidPage(theme = shinytheme("cosmo"),
                                 tags$li(tags$b("Sp"), " - Stationary phase"),
                                 tags$li(tags$b("Tm"), " - Temperature"),
                                 tags$li(tags$b("Vic"), " - Virulence inducing condition"),
-                              )
+                              ),
+                              hr(), # Adding a horizontal line for clear separation
                               
+                              # Content for Mann-Whitney U test
+                              tableOutput("mytableSp2"),
+                              br(),
+                              tags$p("Table represents pairwise comparisons using the Mann-Whitney U test (Wilcoxon rank-sum test in R)."),
+                              tags$p("*** p < 0.001"),
+                              tags$p("** p < 0.01"),
+                              tags$p("* p < 0.05")
+                                
                             ),
                             
                             tabPanel(
@@ -4183,7 +3555,17 @@ ui <- fluidPage(theme = shinytheme("cosmo"),
                                 tags$li(tags$b("Sp"), " - Stationary phase"),
                                 tags$li(tags$b("Tm"), " - Temperature"),
                                 tags$li(tags$b("Vic"), " - Virulence inducing condition"),
-                              )
+                              ),
+                              
+                              hr(), # Adding a horizontal line for clear separation
+                              
+                              # Content for Mann-Whitney U test
+                              tableOutput("mytableNd2"),
+                              br(),
+                              tags$p("Table represents pairwise comparisons using the Mann-Whitney U test (Wilcoxon rank-sum test in R)."),
+                              tags$p("*** p < 0.001"),
+                              tags$p("** p < 0.01"),
+                              tags$p("* p < 0.05")
                               
                             ),
                             
@@ -4306,7 +3688,17 @@ ui <- fluidPage(theme = shinytheme("cosmo"),
                                 tags$li(tags$b("Sp"), " - Stationary phase"),
                                 tags$li(tags$b("Tm"), " - Temperature"),
                                 tags$li(tags$b("Vic"), " - Virulence inducing condition"),
-                              )
+                              ),
+                              
+                              hr(), # Adding a horizontal line for clear separation
+                              
+                              # Content for Mann-Whitney U test
+                              tableOutput("mytableBs2"),
+                              br(),
+                              tags$p("Table represents pairwise comparisons using the Mann-Whitney U test (Wilcoxon rank-sum test in R)."),
+                              tags$p("*** p < 0.001"),
+                              tags$p("** p < 0.01"),
+                              tags$p("* p < 0.05")
                               
                             ),
                             
@@ -4447,7 +3839,17 @@ ui <- fluidPage(theme = shinytheme("cosmo"),
                                 tags$li(tags$b("Sp"), " - Stationary phase"),
                                 tags$li(tags$b("Tm"), " - Temperature"),
                                 tags$li(tags$b("Vic"), " - Virulence inducing condition"),
-                              )
+                              ),
+                              
+                              hr(), # Adding a horizontal line for clear separation
+                              
+                              # Content for Mann-Whitney U test
+                              tableOutput("mytableLi2"),
+                              br(),
+                              tags$p("Table represents pairwise comparisons using the Mann-Whitney U test (Wilcoxon rank-sum test in R)."),
+                              tags$p("*** p < 0.001"),
+                              tags$p("** p < 0.01"),
+                              tags$p("* p < 0.05")
                               
                             ),
                             
@@ -4616,7 +4018,17 @@ ui <- fluidPage(theme = shinytheme("cosmo"),
                                 tags$li(tags$b("Sp"), " - Stationary phase"),
                                 tags$li(tags$b("Tm"), " - Temperature"),
                                 tags$li(tags$b("Vic"), " - Virulence inducing condition"),
-                              )
+                              ),
+                              
+                              hr(), # Adding a horizontal line for clear separation
+                              
+                              # Content for Mann-Whitney U test
+                              tableOutput("mytableMig2"),
+                              br(),
+                              tags$p("Table represents pairwise comparisons using the Mann-Whitney U test (Wilcoxon rank-sum test in R)."),
+                              tags$p("*** p < 0.001"),
+                              tags$p("** p < 0.01"),
+                              tags$p("* p < 0.05")
                               
                             ),
                             
@@ -4748,7 +4160,17 @@ ui <- fluidPage(theme = shinytheme("cosmo"),
                                 tags$li(tags$b("Sp"), " - Stationary phase"),
                                 tags$li(tags$b("Tm"), " - Temperature"),
                                 tags$li(tags$b("Vic"), " - Virulence inducing condition"),
-                              )
+                              ),
+                              
+                              hr(), # Adding a horizontal line for clear separation
+                              
+                              # Content for Mann-Whitney U test
+                              tableOutput("mytableNs2"),
+                              br(),
+                              tags$p("Table represents pairwise comparisons using the Mann-Whitney U test (Wilcoxon rank-sum test in R)."),
+                              tags$p("*** p < 0.001"),
+                              tags$p("** p < 0.01"),
+                              tags$p("* p < 0.05")
                               
                             ),
                             
@@ -4890,7 +4312,17 @@ ui <- fluidPage(theme = shinytheme("cosmo"),
                                 tags$li(tags$b("Sp"), " - Stationary phase"),
                                 tags$li(tags$b("Tm"), " - Temperature"),
                                 tags$li(tags$b("Vic"), " - Virulence inducing condition"),
-                              )
+                              ),
+                              
+                              hr(), # Adding a horizontal line for clear separation
+                              
+                              # Content for Mann-Whitney U test
+                              tableOutput("mytableOss2"),
+                              br(),
+                              tags$p("Table represents pairwise comparisons using the Mann-Whitney U test (Wilcoxon rank-sum test in R)."),
+                              tags$p("*** p < 0.001"),
+                              tags$p("** p < 0.01"),
+                              tags$p("* p < 0.05")
                               
                             ),
                             
@@ -5032,7 +4464,17 @@ ui <- fluidPage(theme = shinytheme("cosmo"),
                                 tags$li(tags$b("Sp"), " - Stationary phase"),
                                 tags$li(tags$b("Tm"), " - Temperature"),
                                 tags$li(tags$b("Vic"), " - Virulence inducing condition"),
-                              )
+                              ),
+                              
+                              hr(), # Adding a horizontal line for clear separation
+                              
+                              # Content for Mann-Whitney U test
+                              tableOutput("mytableOxs2"),
+                              br(),
+                              tags$p("Table represents pairwise comparisons using the Mann-Whitney U test (Wilcoxon rank-sum test in R)."),
+                              tags$p("*** p < 0.001"),
+                              tags$p("** p < 0.01"),
+                              tags$p("* p < 0.05")
                               
                             ),
                             
@@ -5178,8 +4620,16 @@ ui <- fluidPage(theme = shinytheme("cosmo"),
                                 tags$li(tags$b("Sp"), " - Stationary phase"),
                                 tags$li(tags$b("Tm"), " - Temperature"),
                                 tags$li(tags$b("Vic"), " - Virulence inducing condition"),
-                              )
+                              ),
+                              hr(), # Adding a horizontal line for clear separation
                               
+                              # Content for Mann-Whitney U test
+                              tableOutput("mytableTm2"),
+                              br(),
+                              tags$p("Table represents pairwise comparisons using the Mann-Whitney U test (Wilcoxon rank-sum test in R)."),
+                              tags$p("*** p < 0.001"),
+                              tags$p("** p < 0.01"),
+                              tags$p("* p < 0.05") 
                             ),
                             
                             tabPanel(
@@ -5323,7 +4773,17 @@ ui <- fluidPage(theme = shinytheme("cosmo"),
                                 tags$li(tags$b("Sp"), " - Stationary phase"),
                                 tags$li(tags$b("Tm"), " - Temperature"),
                                 tags$li(tags$b("Vic"), " - Virulence inducing condition"),
-                              )
+                              ),
+                              
+                              hr(), # Adding a horizontal line for clear separation
+                              
+                              # Content for Mann-Whitney U test
+                              tableOutput("mytableVic2"),
+                              br(),
+                              tags$p("Table represents pairwise comparisons using the Mann-Whitney U test (Wilcoxon rank-sum test in R)."),
+                              tags$p("*** p < 0.001"),
+                              tags$p("** p < 0.01"),
+                              tags$p("* p < 0.05")
                               
                             ),
                             
@@ -5344,25 +4804,217 @@ ui <- fluidPage(theme = shinytheme("cosmo"),
              
              
   ),
-  navbarMenu("Tutorials",
-           tabPanel("Tutorial 1: Step by step network construction",
-           #          #h2("Tutorial 1", align="center", color="darkblue"),
-                   h4("Case of study 1: Construct a gene co-expression network, how to do it?  "),
-           # tags$video(id="video3", type = "video/mp4",src = "Tutorial_1.mp4", autoplay=FALSE,
-           #            muted=TRUE,
-           #           playsinline=TRUE,
-           #           loop=FALSE,
-           #           width = 1300,
-           #           top="2px",
-           #           controls = "controls")
-           embed_url("https://youtu.be/QaN2Wfc_-do")
-           #HTML('<iframe width="560" height="315" src="https://youtu.be/QaN2Wfc_-do" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>')
-           #tags$iframe(width="560", height="315", src="https://youtu.be/QaN2Wfc_-do", frameborder="0", allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture", allowfullscreen=NA)
-           ),
+  navbarMenu("General info",
+             tabPanel("About",
+                      tags$h2("Main page"),
+                      tags$p(
+                        "The main page of Co-PATHOgenex features a concise introduction to the platform, providing users with an overview of its capabilities. Additionally, the page includes illustrative representations of the various functionalities that can be utilized within the webserver. These illustrations help users understand the diverse features available for analysis and interpretation of pathogen genomics data."
+                      ),
+                      
+                      tags$div(
+                        style = "display: flex; align-items: center;",
+                        tags$figure(
+                          style = "margin-right: 10px;",
+                          tags$img(src = "Mainpanel1.png", alt = "Illustration", style = "width:300px;height:300px;")
+                        ),
+                        tags$p(
+                          "Moreover, the main page also showcases illustrations depicting the experimental setup and methodology employed to generate the PATHOgenex data utilized by the server. This provides users with insights into the processes involved in collecting, sequencing, and preprocessing the data, ensuring a comprehensive understanding of the data's origin and reliability."
+                        )
+                      ),
+                      
+                      tags$h3("Main Functions"),
+                      tags$ol(
+                        tags$li(
+                          "Gene co-expression network construction (GCN)",
+                          tags$ul(
+                            tags$li("Pathogen-specific GCN"),
+                            tags$li("Core GCN (for pathogens represented with multiple strains in the webserver)")
+                          )
+                        ),
+                        tags$li("Stress-specific stimulons")
+    
+            
+  ),                    
+                      tags$h2("Gene co-expression network construction (GCN)"),
+                      tags$p(
+                        "The GCN function of Co-PATHOgenex is embedded on the black tab located at the top of the webpage. Upon activating the arrow on this button, two options will be presented for further progression."
+                      ),
+  tags$figure(
+    tags$img(src = "GCN2.png", alt = "Illustration", style = "width:300px;height:50px;")
+    ),            
+  tags$b("a. Pathogen-specific GCN"),
+  tags$div(
+                        style = "display: flex; align-items: center;",
+                        tags$figure(
+                          style = "margin-right: 10px;",
+                          tags$img(src = "plotspower3.png", alt = "Illustration", style = "width:300px;height:300px;")
+                        ),
+                        tags$p("By clicking on this option, users are directed to a function that enables the selection of one out of the 32 available strains in Co-PATHOgenex for GCN analysis. This function also facilitates the evaluation of results obtained from different settings while conducting GCN analysis for the chosen strain.
+Users can select the strain of their interest in ‘Choose a dataset’ option and activate ‘Update View’ button. This will provide a dendrogram to detect potential outliers and two plots to evaluate the modular structure of the GCN."
+                        )
+  ),                                
+  tags$p(
+    "The subsequent step in analyzing the strain of interest involves ",
+    tags$b("network construction."),
+    "Two parameters can be adjusted by the user for this purpose:"
+  ),
+  tags$ol(
+    tags$li(
+      tags$b("Power")
+    ),
+    tags$li(
+      tags$b("Genes per module (minimum)")
+    )
+  ),
+  tags$p(
+    "Although the default settings have been determined to be optimal for some datasets, users have the flexibility to employ different settings according to their specific objectives."
+  ),
+  
+  tags$figure(
+    tags$img(src = "network4.png", alt = "Illustration", style = "width:300px;height:200px;")
+  ),             
+  
+  tags$p(
+    "Once the parameters have been selected, a cluster dendrogram showcasing the generated gene modules, along with descriptive information regarding the constructed network, will be displayed on the screen. Noteworthy, each gene modules are named with colors."
+  ),
+  
+  tags$p(
+    tags$b("Modules expression,"),
+    "is calculated as the module eigengene. Within this framework, users are able to observe all modules (indicated by module color column) along with the number of genes within each module and the eigengene expression of each module for every replicate under different conditions. Each column in this matrix can be sorted based on various criteria, such as sorting gene modules by the lowest or highest gene count or by the lowest or highest eigengene expression under specific stress conditions. Once users have identified the module of interest, they can navigate to the gene expression tab or visualize the modules using the other two available tabs."
+  ),
+  
+  tags$figure(
+    tags$img(src = "MEtable.png", alt = "Illustration", style = "width:300px;height:200px;")
+  ),  
+  
+  tags$p(
+    tags$b("Gene expression"),
+    "tab provides users with access to the expression values of all genes within each module, represented by standardized TPM values. In addition to the module column, separate columns display the genes' locus tag, gene name, and associated PGfam description. A search option is available, enabling users to search for any keyword that may be present within a row in any column. For instance, users can search for the module of interest to retrieve all the genes within that module, search for a specific gene name to determine its assigned module, or search for a particular descriptor commonly associated with certain genes to identify their respective modules and examine their expression levels. The results of the search or the whole matrix could be downloaded in CSV or Excel format and also could be copied to directly the computer with the three options located on left-top corner of the gene expression matrix."
+  ),
+  
+  tags$figure(
+    tags$img(src = "Exptable.png", alt = "Illustration", style = "width:300px;height:200px;")
+  ), 
+  
+  tags$p(
+    tags$b("Module visualization"),
+    "could be used to visualize gene expression and module eigengene expressions.
+Users have the option to enter the name of the module they wish to analyze in the designated 'Choose a module for analysis' box. They can then select either the 'Gene expression heatmap' or the 'Module eigengene barplot'. Upon clicking the 'Submit' button, the requested visualization will be displayed. Both the expression heatmap and the eigengene expression barplot can be downloaded in PNG format using the two buttons provided beneath the visualization.
+"
+  ),
+  
+  tags$figure(
+    tags$img(src = "heatmap.png", alt = "Illustration", style = "width:300px;height:200px;")
+  ),
+  br(), 
+  
+  br(),                     
+  
+              
+  tags$b("b.	Core GCN"),
+  tags$figure(
+    tags$img(src = "CoreGCN.png", alt = "Illustration", style = "width:300px;height:50px;")
+  ),
+  tags$div(
+    style = "display: flex; align-items: center;",
+    tags$figure(
+      style = "margin-right: 10px;",
+      tags$img(src = "Core2.png", alt = "Illustration", style = "width:300px;height:300px;")
+    ),
+    tags$p("PATHOgenex encompasses datasets derived from various strains of", tags$i("Escherichia coli"), "(EPEC, ETEC, and UPEC),", tags$i("Helicobacter pylori"), "(G27 and J99), and", tags$i("Staphylococcus aureus"),"(MRSA and MSSA). Co-PATHOgenex utilizes these datasets to generate core co-expression networks by identifying common genes shared among pairs of strains. The common genes are annotated with PGFam IDs.
+Upon selecting the pairwise comparison of interest from the 'Choose a dataset' option, general information about the dataset and the network topology will be presented.
+While the Network construction, Modules expression, Gene expression, and Module visualization could be used similarly as mentioned above, in this analysis there is ‘Consensus between strains’ tab.
+"
+    )
+    
+    
+  ),    
+  
+  tags$p(
+    tags$b("Consensus between strains,"),
+    "evaluates how the gene modules’ response is conserved in different strains. This includes:"
+  ),
+  tags$ol(
+    tags$li(
+      tags$p("Hierarchical clustering generated using the eigengene values of modules in the consensusfor each strain")
+    ),
+    tags$li(
+      tags$p("Heatmap illustrating the absolute value of the correlation coefficient for pairwise comparisons of module eigengenes for each strain")
+    ),
+    tags$li(
+      tags$p("Heatmap visualizing the correlation coefficient for pairwise comparisons of module eigengenes between Strain 1 and Strain 2")
+    )
+  ), 
+  tags$figure(
+    tags$img(src = "Core3.png", alt = "Illustration", style = "width:300px;height:200px;")
+  ),  
+  tags$h2("Stress specific-specific stimulons"),
+  tags$div(
+    style = "display: flex; align-items: center;",
+    tags$figure(
+      style = "margin-right: 10px;",
+      tags$img(src = "Stress_sti.png", alt = "Illustration", style = "width:100px;height:150px;")
+    ),
+    tags$p(
+      "Stress-specific stimulons in Co-PATHOgenex refer to genes whose expression patterns are uniquely associated with specific stress conditions across different strains. This information can be accessed by clicking the 'Stress-specific stimulons' button on the main page.
+Upon selecting the desired stress condition, the webpage will be redirected to a page where users can choose the specific strain of interest
+"
+    ),
+  ), 
+  
+  tags$p("The strain of interest could be selected from ’Select Species’ option could be activated with ‘Submit button’.
+
+The standard deviation of gene expression for all genes within the stimulon under different conditions is visualized in the 'Stimulon expression under different conditions' tab.
+"
+  ),
+  
+  tags$figure(
+    tags$img(src = "Sti2.png", alt = "Illustration", style = "width:350px;height:200px;")
+  ),       
+
+  tags$p("By activating the 'Stimulon gene annotation data' tab, users can access information such as genes identified by locus tag, gene name, PGfam description, and the standard deviation of gene expression for each replicate under every condition. The search option is available to facilitate data exploration. Furthermore, users have the option to copy or download the data in CSV and Excel formats.
+"
+  ),
+  
+  tags$figure(
+    tags$img(src = "Sti4.png", alt = "Illustration", style = "width:350px;height:150px;")
+  ),       
+  
+  
+  br(), 
+  
+  br(),  
+             ),
+  
+  
+  
+  
            #h2("Tutorial 2", align="center", color="darkblue"),
-           tabPanel("Tutorial 2: Finding information of a gene of interest",
-           h4(" Case of study 2: Finding genes co-expressed with streptococcal pyrogenic exotoxin B (SpeB) in Streptococcus pyogenes"),
-           embed_url("https://youtu.be/hnrDZSNlYkU")
+           tabPanel("Dataset details ",
+                    tags$h2("Dataset in Co-PATHOgenex"),
+                    
+                    tags$p(
+                      "The bacterial cultures were subjected to 10 stress conditions that mimic various infection-related stresses encountered by bacterial pathogens in the human host. These stress conditions include acidic stress, bile stress, low iron, microaerophilic growth (hypoxia), nutritional downshift, nitrosative stress, osmotic stress, oxidative stress, high temperature, and starvation (stationary phase)."
+                    ),   
+                    
+                    tags$p(
+                      "In addition, specific in vitro conditions were employed to induce virulence in certain bacterial species. For example,", tags$i("Yersinia pseudotuberculosis"), "was exposed to a temperature shift from 26°C to 37°C and depletion of extracellular Ca2+,", tags$i("Neisseria spp."), "were supplemented with L-lactate, and", tags$i("Listeria monocytogenes")," had the presence of charcoal-like resin XAD-4 in the growth medium. However, for species such as", tags$i("Mycobacterium tuberculosis"), "and", tags$i("Legionella pneumophila"),", the virulence-inducing conditions remain unknown and were not performed."
+                    ), 
+                    
+                    tags$p(
+                      "To serve as controls for the analysis of differential gene expression, unexposed bacteria in the exponential growth phase were utilized. The growth temperature and culture medium were adjusted accordingly for each specific strain to ensure optimal growth conditions. Similarly, the strength of stress induction, using different agents, and the associated exposure time were carefully designed to be as similar and relevant as possible for each bacterial species. However, minor adjustments were necessary for certain conditions. For instance, the low pH level used for",tags$i("Helicobacter pylori")," strains was lower compared to the others, and a significantly higher concentration of H2O2 was required to induce a stress response in", tags$i("Acinetobacter baumannii."),"
+The whole dataset was generated with RNAseq. The sequencing reads and TPM values for every strains and conditions  were retrieved from GEO with accession number GSE152295."
+), 
+
+tags$figure(
+  tags$img(src = "Tab1.png", alt = "Illustration", style = "width:500px;height:400px;")
+),  
+
+tags$figure(
+  tags$img(src = "Tab2.png", alt = "Illustration", style = "width:500px;height:400px;")
+), 
+           #h4(" Case of study 2: Finding genes co-expressed with streptococcal pyrogenic exotoxin B (SpeB) in Streptococcus pyogenes"),
+           #embed_url("https://youtu.be/hnrDZSNlYkU")
            # tags$video(id="video4", type = "video/mp4",src = "Tutorial_2.mp4", autoplay=FALSE,
            #            muted=TRUE,
            #            playsinline=TRUE,
@@ -5373,8 +5025,8 @@ ui <- fluidPage(theme = shinytheme("cosmo"),
            ),
            
            #h2("Tutorial 3", align="center", color="darkblue"),
-           tabPanel("Tutorial 3: Core transcriptome network construction",
-           h4(" Case of study 3: Co-expression of common genes in the species: E. coli, H. pylori, S. aureus "),
+           tabPanel("Video Tutorial: Network construction",
+           h4("Procedure for Gene Co-Expression Network Construction"),
            
            # tags$video(id="video5", type = "video/mp4",src = "Tutorial_3.mp4", autoplay=FALSE,
            #            muted=TRUE,
@@ -5383,25 +5035,14 @@ ui <- fluidPage(theme = shinytheme("cosmo"),
            #            width = 1300,
            #            top="2px",
            #            controls = "controls")
-           embed_url("https://youtu.be/oaOCilpGiTk")
-           ),
-           tabPanel("Tutorial 4: How to wotk with the stimulons?",
-           #h2("Tutorial 4", align="center", color="darkblue"),
-           h4(" Case of study 4: Stress specific stimulon "),
-           # tags$video(id="video6", type = "video/mp4",src = "Tutorial_4.mp4", autoplay=FALSE,
-           #            muted=TRUE,
-           #            playsinline=TRUE,
-           #            loop=FALSE,
-           #            width = 1300,
-           #            top="2px",
-           #            controls = "controls")
-           embed_url("https://youtu.be/viSzO7O7YZs")
-           ) 
+           embed_url("https://youtu.be/mhLLHIWrytY")
+           )
+
            
          #  img(height = 800, width = 900,src='Co-pathogenex homepage.png', align = "center"),
   ),
   
-  tabPanel("General info")
+#  tabPanel("General info")
     )
     
 )
@@ -5410,6 +5051,41 @@ ui <- fluidPage(theme = shinytheme("cosmo"),
 
         
 server <-function(input, output,session) {
+  
+  Escherichia_coli_EPEC_0127_H6_E2348_69_expr <- load_data("Escherichia_coli_EPEC_0127_H6_E2348_69_R_input.csv")
+  Escherichia_coli_ETEC_H10407_expr <- load_data("Escherichia_coli_ETEC_H10407_R_input.csv")
+  Escherichia_coli_UPEC_536_expr <- load_data("Escherichia_coli_UPEC_536_R_input.csv")
+  Helicobacter_pylori_G27_expr <- load_data("Helicobacter_pylori_G27_R_input2.csv")
+  Salmonella_expr <- load_data("Salmonella_enterica_R_input.csv")
+  Helicobacter_pylori_J99_expr <- load_data("Helicobacter_pylori_J99_R_input2.csv")
+  Acinetobacter_baumannii_expr <- load_data("Acinetobacter_baumannii_R_input.csv")
+  Acinetobacter_baumannii_expr <- load_data("Acinetobacter_baumannii_R_input.csv")
+  Achromobacter_xylosoxidans_expr <- load_data("Achromobacter_xylosoxidans_SOLR_R_input.csv")
+  Aggregatibacter_actinomycetemcomitans_expr <- load_data("Aggregatibacter_actinomycetemcomitans_R_input.csv")
+  Borrelia_burgdorferi_expr <- load_data("Borrelia_burgdorferi_B31_R_input2.csv")
+  Burkholderia_pseudomallei_expr <- load_data("Burkholderia_pseudomallei_R_input2.csv")
+  Campylobacter_jejuni_expr <- load_data("Campylobacter_jejuni_R_input.csv")
+  Francisella_tularensis_expr <- load_data("Francisella_tularensis_R_input.csv")
+  Haemophilus_influenzae_expr <- load_data("Haemophilus_influenzae_R_input2.csv")
+  Klebsiella_pneumoniae_expr <- load_data("Klebsiella_pneumoniae_R_input.csv")
+  Legionella_pneumophila_expr <- load_data("Legionella_pneumophila_R_input2.csv")
+  Listeria_monocytogenes_expr <- load_data("Listeria_monocytogenes_R_input.csv")
+  Mycobacterium_tuberculosis_expr <- load_data("Mycobacterium_tuberculosis_R_input.csv")
+  Neisseria_gonorrhoeae_expr <- load_data("Neisseria_gonorrhoeae_R_input.csv")
+  Neisseria_meningitidis_expr <- load_data("Neisseria_meningitidis_R_input.csv")
+  Pseudomonas_aeruginosa_expr <- load_data("Pseudomonas_aeruginosa_R_input.csv")
+  Staphylococcus_aureus_MRSA252_expr <- load_data("Staphylococcus_aureus_MRSA252_R_input.csv")
+  Staphylococcus_aureus_MSSA476_expr <- load_data("Staphylococcus_aureus_MSSA476_R_input.csv")
+  Staphylococcus_epidermidis_expr <- load_data("Staphylococcus_epidermidis_R_input.csv")
+  Streptococcus_agalactiae_expr <- load_data("Streptococcus_agalactiae_R_input.csv")
+  Streptococcus_pneumoniae_expr <- load_data("Streptococcus_pneumoniae_R_input.csv")
+  Streptococcus_pyogenes_expr <- load_data("Streptococcus_pyogenes_R_input.csv")
+  Streptococcus_suis_expr <- load_data("Streptococcus_suis_R_input.csv")
+  #Yersinia_pseudot_TPM_expr <- load_data("Early_readcounts_with_PATHOgenex_T3SS_invivo_duplicates.csv")
+  Enterococcus_faecalis_expr <- load_data("Enterococcus_faecalis_R_input.csv")
+  Shigella_flexneri_expr <- load_data("Shigella_flexneri_R_input.csv")
+  Vibrio_cholerae_expr <- load_data("Vibrio_cholerae_R_input.csv")
+  
     
     # Return the requested dataset ----
     datasetInput <- reactive({
@@ -5424,9 +5100,9 @@ server <-function(input, output,session) {
                "Aggregatibacter actinomycetemcomitans"=(Aggregatibacter_actinomycetemcomitans_expr),
                "Achromobacter xylosoxidans"=(Achromobacter_xylosoxidans_expr),
                "Burkholderia pseudomallei"= (Burkholderia_pseudomallei_expr),
-                "Borrelia burgdorferi" = (Borrelia_burgdorferi_expr),
-                "Campylobacter jejuni" = (Campylobacter_jejuni_expr),
-                "Francisella tularensis" = (Francisella_tularensis_expr),
+               "Borrelia burgdorferi" = (Borrelia_burgdorferi_expr),
+               "Campylobacter jejuni" = (Campylobacter_jejuni_expr),
+               "Francisella tularensis" = (Francisella_tularensis_expr),
                "Haemophilus influenzae" = (Haemophilus_influenzae_expr),
                "Klebsiella pneumoniae" = (Klebsiella_pneumoniae_expr),
                "Legionella pneumophila"= (Legionella_pneumophila_expr),
@@ -5712,7 +5388,20 @@ server <-function(input, output,session) {
     output$mytable2 <- DT::renderDataTable({showModal(modalDialog(title = "Gene expression:","Computing z-score per gene...", footer=NULL))
                                         on.exit(removeModal()) 
                                         dat2()
-                                        return(datatable(dat2(), extensions = 'Buttons',options = list(paging=TRUE, lengthMenu=c(50,100,150), scrollX = FALSE,lengthChange = T, regex= FALSE, searching = TRUE,initComplete = JS(js),dom = 'Bfrtip',buttons = c('copy', 'csv', 'excel')),rownames=FALSE, class = "display") %>% formatStyle(names(dat2()[-1:-4]), backgroundColor = styleInterval(brks, clrs)))
+                                        return(datatable(dat2(), extensions = 'Buttons',options = list(paging=FALSE, lengthMenu=c(50,100,150), scrollX = FALSE,lengthChange = T, regex= FALSE, searching = TRUE,initComplete = JS(js),dom = 'Bfrtip',buttons = list(
+                                          list(
+                                            extend = "copy",
+                                            filename = "dataset_copy"
+                                          ),
+                                          list(
+                                            extend = "csv",
+                                            filename = "dataset_csv"
+                                          ),
+                                          list(
+                                            extend = "excel",
+                                            filename = "dataset_excel"
+                                          )
+                                        )),rownames=FALSE, class = "display") %>% formatStyle(names(dat2()[-1:-4]), backgroundColor = styleInterval(brks, clrs)))
                                           #options = list(paging=FALSE, scrollX = FALSE), 
                                           #rownames=TRUE, 
                                           #filter = "top"
@@ -5923,7 +5612,258 @@ server <-function(input, output,session) {
     
     
 #####Core####
-    datasetInputCore <- reactive({
+    
+      #More code
+      Escherichia_coli_EPEC_0127_H6_E2348_69_expr <- load_data("Escherichia_coli_EPEC_0127_H6_E2348_69_R_input.csv")
+      Escherichia_coli_UPEC_536_expr <- load_data("Escherichia_coli_UPEC_536_R_input.csv")
+      Escherichia_coli_ETEC_H10407_expr <- load_data("Escherichia_coli_ETEC_H10407_R_input.csv")
+      Locus_Tag_UPEC <- colnames(Escherichia_coli_UPEC_536_expr)
+      probes_UPEC <- Locus_Tag_UPEC
+      Genes <- Annotations_all_PGFAM_new$ref_genome_pgfam_id[match(probes_UPEC, Annotations_all_PGFAM_new$comp_genome_1_patric_id)]
+      UPEC_STRAIN_expr <- as.data.frame(cbind(Genes, t(Escherichia_coli_UPEC_536_expr)))
+      UPEC_STRAIN_expr_df = UPEC_STRAIN_expr[!is.na(UPEC_STRAIN_expr$Genes), ]
+      UPEC_STRAIN_expr_df2= UPEC_STRAIN_expr_df[, 2:ncol(UPEC_STRAIN_expr_df)]
+      UPEC_STRAIN_expr_df2[is.na(UPEC_STRAIN_expr_df2)] <- 0
+      rownames(UPEC_STRAIN_expr_df2)= NULL
+      rownames(UPEC_STRAIN_expr_df2)= make.names(UPEC_STRAIN_expr_df$Genes, unique=TRUE)
+      #
+      Locus_Tag_EPEC <- colnames(Escherichia_coli_EPEC_0127_H6_E2348_69_expr)
+      probes_EPEC <- Locus_Tag_EPEC
+      Genes <- Annotations_all_PGFAM_new$ref_genome_pgfam_id[match(probes_EPEC, Annotations_all_PGFAM_new$comp_genome_1_patric_id)]
+      EPEC_STRAIN_expr <- as.data.frame(cbind(Genes, t(Escherichia_coli_EPEC_0127_H6_E2348_69_expr)))
+      EPEC_STRAIN_expr_df = EPEC_STRAIN_expr[!is.na(EPEC_STRAIN_expr$Genes), ]
+      EPEC_STRAIN_expr_df2= EPEC_STRAIN_expr_df[, 2:ncol(EPEC_STRAIN_expr_df)]
+      EPEC_STRAIN_expr_df2[is.na(EPEC_STRAIN_expr_df2)] <- 0
+      rownames(EPEC_STRAIN_expr_df2)= NULL
+      rownames(EPEC_STRAIN_expr_df2)= make.names(EPEC_STRAIN_expr_df$Genes, unique=TRUE)    
+      #
+      Locus_Tag_ETEC <- colnames(Escherichia_coli_ETEC_H10407_expr)
+      probes_ETEC <- Locus_Tag_ETEC
+      Genes <- Annotations_all_PGFAM_new$ref_genome_pgfam_id[match(probes_ETEC, Annotations_all_PGFAM_new$comp_genome_1_patric_id)]
+      ETEC_STRAIN_expr <- as.data.frame(cbind(Genes, t(Escherichia_coli_ETEC_H10407_expr)))
+      ETEC_STRAIN_expr_df = ETEC_STRAIN_expr[!is.na(ETEC_STRAIN_expr$Genes), ]
+      ETEC_STRAIN_expr_df2= ETEC_STRAIN_expr_df[, 2:ncol(ETEC_STRAIN_expr_df)]
+      ETEC_STRAIN_expr_df2[is.na(ETEC_STRAIN_expr_df2)] <- 0
+      rownames(ETEC_STRAIN_expr_df2)= NULL
+      rownames(ETEC_STRAIN_expr_df2)= make.names(ETEC_STRAIN_expr_df$Genes, unique=TRUE)
+     
+      # #####UPECandEPEC#######
+      # 
+      UPEC_STRAIN_expr_t= t(UPEC_STRAIN_expr)
+      EPEC_STRAIN_expr_t= t(EPEC_STRAIN_expr)
+      list_of_data = list(UPEC_STRAIN_expr_df2,EPEC_STRAIN_expr_df2)
+      common_names = Reduce(intersect, lapply(list_of_data, row.names))
+      list_of_data = lapply(list_of_data, function(x) { x[row.names(x) %in% common_names,] })
+      
+      UPEC_commongenes_1 = as.data.frame(list_of_data[1])
+      EPEC_commongenes_1 = as.data.frame(list_of_data[2])
+      UPEC_commongenes=as.data.frame(sapply(UPEC_commongenes_1, as.numeric))
+      rownames(UPEC_commongenes)= rownames(UPEC_commongenes_1)
+      EPEC_commongenes=as.data.frame(sapply(EPEC_commongenes_1, as.numeric))
+      rownames(EPEC_commongenes)= rownames(EPEC_commongenes_1)
+      # 
+      nSets=2
+      setLabels_analysis=NULL
+      setLabels_analysis["UPEC vs EPEC"] = list(c("Strain UPEC", "Strain EPEC"))
+      shortLabels = c("UPEC", "EPEC")
+      UPEC_EPEC_multiExpr = vector(mode = "list", length = nSets)
+      # 
+      UPEC_commongenes_t = t(UPEC_commongenes)
+      EPEC_commongenes_t = t(EPEC_commongenes)
+      UPEC_commongenes_t_ord = UPEC_commongenes_t[ , order(colnames(UPEC_commongenes_t))]
+      EPEC_commongenes_t_ord = EPEC_commongenes_t[ , order(colnames(EPEC_commongenes_t))]
+      # 
+      UPEC_EPEC_multiExpr[[1]] = list(data = UPEC_commongenes_t_ord)
+      UPEC_EPEC_multiExpr[[2]] = list(data = EPEC_commongenes_t_ord)
+      names(UPEC_EPEC_multiExpr[[1]]$data) = colnames(UPEC_commongenes_t_ord)
+      names(UPEC_EPEC_multiExpr[[2]]$data) = colnames(EPEC_commongenes_t_ord)
+      # 
+      # 
+      # 
+      # #####UPECandETEC#######
+      # 
+      UPEC_STRAIN_expr_t= t(UPEC_STRAIN_expr)
+      ETEC_STRAIN_expr_t= t(ETEC_STRAIN_expr)
+      list_of_data = list(UPEC_STRAIN_expr_df2,ETEC_STRAIN_expr_df2)
+      common_names = Reduce(intersect, lapply(list_of_data, row.names))
+      list_of_data = lapply(list_of_data, function(x) { x[row.names(x) %in% common_names,] })
+      # 
+      UPEC_commongenes_1 = as.data.frame(list_of_data[1])
+      ETEC_commongenes_1 = as.data.frame(list_of_data[2])
+      # 
+      UPEC_commongenes=as.data.frame(sapply(UPEC_commongenes_1, as.numeric))
+      rownames(UPEC_commongenes)= rownames(UPEC_commongenes_1)
+      ETEC_commongenes=as.data.frame(sapply(ETEC_commongenes_1, as.numeric))
+      rownames(ETEC_commongenes)= rownames(ETEC_commongenes_1)
+      # 
+      nSets=2
+      setLabels_analysis["UPEC vs ETEC"]= list(c("Strain UPEC", "Strain ETEC"))
+      shortLabels = c("UPEC", "ETEC")
+      UPEC_ETEC_multiExpr = vector(mode = "list", length = nSets)
+      # 
+      UPEC_commongenes_t = t(UPEC_commongenes)
+      ETEC_commongenes_t = t(ETEC_commongenes)
+      UPEC_commongenes_t_ord = UPEC_commongenes_t[ , order(colnames(UPEC_commongenes_t))]
+      ETEC_commongenes_t_ord = ETEC_commongenes_t[ , order(colnames(ETEC_commongenes_t))]
+      # 
+      UPEC_ETEC_multiExpr[[1]] = list(data = UPEC_commongenes_t_ord)
+      UPEC_ETEC_multiExpr[[2]] = list(data = ETEC_commongenes_t_ord)
+      # 
+      names(UPEC_ETEC_multiExpr[[1]]$data) = colnames(UPEC_commongenes_t_ord)
+      names(UPEC_ETEC_multiExpr[[2]]$data) = colnames(ETEC_commongenes_t_ord)
+      # 
+      # #####EPECandETEC#######
+      # 
+      EPEC_STRAIN_expr_t= t(EPEC_STRAIN_expr)
+      ETEC_STRAIN_expr_t= t(ETEC_STRAIN_expr)
+      list_of_data = list(EPEC_STRAIN_expr_df2,ETEC_STRAIN_expr_df2)
+      common_names = Reduce(intersect, lapply(list_of_data, row.names))
+      list_of_data = lapply(list_of_data, function(x) { x[row.names(x) %in% common_names,] })
+      # 
+      EPEC_commongenes_1 = as.data.frame(list_of_data[1])
+      ETEC_commongenes_1 = as.data.frame(list_of_data[2])
+      # 
+      EPEC_commongenes=as.data.frame(sapply(EPEC_commongenes_1, as.numeric))
+      rownames(EPEC_commongenes)= rownames(EPEC_commongenes_1)
+      ETEC_commongenes=as.data.frame(sapply(ETEC_commongenes_1, as.numeric))
+      rownames(ETEC_commongenes)= rownames(ETEC_commongenes_1)
+      # 
+      nSets=2
+      setLabels_analysis["EPEC vs ETEC"]= list(c("Strain EPEC", "Strain ETEC"))
+      shortLabels = c("EPEC", "ETEC")
+      EPEC_ETEC_multiExpr = vector(mode = "list", length = nSets)
+      # 
+      EPEC_commongenes_t = t(EPEC_commongenes)
+      ETEC_commongenes_t = t(ETEC_commongenes)
+      EPEC_commongenes_t_ord = EPEC_commongenes_t[ , order(colnames(EPEC_commongenes_t))]
+      ETEC_commongenes_t_ord = ETEC_commongenes_t[ , order(colnames(ETEC_commongenes_t))]
+      # 
+      EPEC_ETEC_multiExpr[[1]] = list(data = EPEC_commongenes_t_ord)
+      EPEC_ETEC_multiExpr[[2]] = list(data = ETEC_commongenes_t_ord)
+      # 
+      names(EPEC_ETEC_multiExpr[[1]]$data) = colnames(EPEC_commongenes_t_ord)
+      names(EPEC_ETEC_multiExpr[[2]]$data) = colnames(ETEC_commongenes_t_ord)
+      
+      #Pylori
+      
+      Helicobacter_pylori_G27_expr <- load_data("Helicobacter_pylori_G27_R_input2.csv")
+      Helicobacter_pylori_J99_expr <- load_data("Helicobacter_pylori_J99_R_input2.csv")
+      
+      ###################HP_G27_HP_J99################################
+      Locus_Tag_HP_G27= colnames(Helicobacter_pylori_G27_expr)
+      probes_HP_G27 = Locus_Tag_HP_G27
+      Genes=Annotations_all_PGFAM_new$ref_genome_pgfam_id[match(probes_HP_G27,Annotations_all_PGFAM_new$comp_genome_1_patric_id)]
+      HP_G27_STRAIN_expr = as.data.frame(cbind(Genes,t(Helicobacter_pylori_G27_expr)))
+      #attach(HP_G27_STRAIN_expr)
+      HP_G27_STRAIN_expr_df = HP_G27_STRAIN_expr[!is.na(HP_G27_STRAIN_expr$Genes), ]
+      HP_G27_STRAIN_expr_df2= HP_G27_STRAIN_expr_df[, 2:ncol(HP_G27_STRAIN_expr_df)]
+      HP_G27_STRAIN_expr_df2[is.na(HP_G27_STRAIN_expr_df2)] <- 0
+      rownames(HP_G27_STRAIN_expr_df2)= NULL
+      rownames(HP_G27_STRAIN_expr_df2)= make.names(HP_G27_STRAIN_expr_df$Genes, unique=TRUE)
+      
+      
+      Locus_Tag_HP_J99= colnames(Helicobacter_pylori_J99_expr)
+      probes_HP_J99 = Locus_Tag_HP_J99
+      Genes=Annotations_all_PGFAM_new$ref_genome_pgfam_id[match(probes_HP_J99,Annotations_all_PGFAM_new$comp_genome_1_patric_id)]
+      HP_J99_STRAIN_expr = as.data.frame(cbind(Genes,t(Helicobacter_pylori_J99_expr)))
+      #attach(HP_J99_STRAIN_expr)
+      HP_J99_STRAIN_expr_df = HP_J99_STRAIN_expr[!is.na(HP_J99_STRAIN_expr$Genes), ]
+      HP_J99_STRAIN_expr_df2= HP_J99_STRAIN_expr_df[, 2:ncol(HP_J99_STRAIN_expr_df)]
+      HP_J99_STRAIN_expr_df2[is.na(HP_J99_STRAIN_expr_df2)] <- 0
+      rownames(HP_J99_STRAIN_expr_df2)= NULL
+      rownames(HP_J99_STRAIN_expr_df2)= make.names(HP_J99_STRAIN_expr_df$Genes, unique=TRUE)
+      
+      HP_J99_STRAIN_expr_t= t(HP_J99_STRAIN_expr)
+      HP_G27_STRAIN_expr_t= t(HP_G27_STRAIN_expr)
+      list_of_data = list(HP_J99_STRAIN_expr_df2,HP_G27_STRAIN_expr_df2)
+      common_names = Reduce(intersect, lapply(list_of_data, row.names))
+      list_of_data = lapply(list_of_data, function(x) { x[row.names(x) %in% common_names,] })
+      
+      HP_J99_commongenes_1 = as.data.frame(list_of_data[1])
+      HP_G27_commongenes_1 = as.data.frame(list_of_data[2])
+      
+      HP_J99_commongenes=as.data.frame(sapply(HP_J99_commongenes_1, as.numeric))
+      rownames(HP_J99_commongenes)= rownames(HP_J99_commongenes_1)
+      HP_G27_commongenes=as.data.frame(sapply(HP_G27_commongenes_1, as.numeric))
+      rownames(HP_G27_commongenes)= rownames(HP_G27_commongenes_1)
+      
+      nSets=2
+      setLabels_analysis["HP_J99 vs HP_G27"]= list(c("Strain HP_J99", "Strain HP_G27"))
+      shortLabels = c("HP_J99", "HP_G27")
+      HP_J99_HP_G27_multiExpr = vector(mode = "list", length = nSets)
+      
+      HP_J99_commongenes_t = t(HP_J99_commongenes)
+      HP_G27_commongenes_t = t(HP_G27_commongenes)
+      HP_J99_commongenes_t_ord = HP_J99_commongenes_t[ , order(colnames(HP_J99_commongenes_t))]
+      HP_G27_commongenes_t_ord = HP_G27_commongenes_t[ , order(colnames(HP_G27_commongenes_t))]
+      
+      HP_J99_HP_G27_multiExpr[[1]] = list(data = HP_J99_commongenes_t_ord)
+      HP_J99_HP_G27_multiExpr[[2]] = list(data = HP_G27_commongenes_t_ord)
+      
+      names(HP_J99_HP_G27_multiExpr[[1]]$data) = colnames(HP_J99_commongenes_t_ord)
+      names(HP_J99_HP_G27_multiExpr[[2]]$data) = colnames(HP_G27_commongenes_t_ord)
+      
+      
+      ###################MRSA252_MSSA476################################
+      Staphylococcus_aureus_MRSA252_expr <- load_data("Staphylococcus_aureus_MRSA252_R_input.csv")
+      Staphylococcus_aureus_MSSA476_expr <- load_data("Staphylococcus_aureus_MSSA476_R_input.csv")
+      
+      Locus_Tag_MSSA476= colnames(Staphylococcus_aureus_MSSA476_expr)
+      probes_MSSA476 = Locus_Tag_MSSA476
+      Genes=Annotations_all_PGFAM_new$ref_genome_pgfam_id[match(probes_MSSA476,Annotations_all_PGFAM_new$comp_genome_1_patric_id)]
+      MSSA476_STRAIN_expr = as.data.frame(cbind(Genes,t(Staphylococcus_aureus_MSSA476_expr)))
+      #attach(MSSA476_STRAIN_expr)
+      MSSA476_STRAIN_expr_df = MSSA476_STRAIN_expr[!is.na(MSSA476_STRAIN_expr$Genes), ]
+      MSSA476_STRAIN_expr_df2= MSSA476_STRAIN_expr_df[, 2:ncol(MSSA476_STRAIN_expr_df)]
+      MSSA476_STRAIN_expr_df2[is.na(MSSA476_STRAIN_expr_df2)] <- 0
+      rownames(MSSA476_STRAIN_expr_df2)= NULL
+      rownames(MSSA476_STRAIN_expr_df2)= make.names(MSSA476_STRAIN_expr_df$Genes, unique=TRUE)
+      
+      Locus_Tag_MRSA252= colnames(Staphylococcus_aureus_MRSA252_expr)
+      probes_MRSA252 = Locus_Tag_MRSA252
+      Genes=Annotations_all_PGFAM_new$ref_genome_pgfam_id[match(probes_MRSA252,Annotations_all_PGFAM_new$comp_genome_1_patric_id)]
+      MRSA252_STRAIN_expr = as.data.frame(cbind(Genes,t(Staphylococcus_aureus_MRSA252_expr)))
+      #attach(MRSA252_STRAIN_expr)
+      MRSA252_STRAIN_expr_df = MRSA252_STRAIN_expr[!is.na(MRSA252_STRAIN_expr$Genes), ]
+      MRSA252_STRAIN_expr_df2= MRSA252_STRAIN_expr_df[, 2:ncol(MRSA252_STRAIN_expr_df)]
+      MRSA252_STRAIN_expr_df2[is.na(MRSA252_STRAIN_expr_df2)] <- 0
+      rownames(MRSA252_STRAIN_expr_df2)= NULL
+      rownames(MRSA252_STRAIN_expr_df2)= make.names(MRSA252_STRAIN_expr_df$Genes, unique=TRUE)
+      
+      
+      MSSA476_STRAIN_expr_t= t(MSSA476_STRAIN_expr)
+      MRSA252_STRAIN_expr_t= t(MRSA252_STRAIN_expr)
+      list_of_data = list(MSSA476_STRAIN_expr_df2,MRSA252_STRAIN_expr_df2)
+      common_names = Reduce(intersect, lapply(list_of_data, row.names))
+      list_of_data = lapply(list_of_data, function(x) { x[row.names(x) %in% common_names,] })
+      
+      MSSA476_commongenes_1 = as.data.frame(list_of_data[1])
+      MRSA252_commongenes_1 = as.data.frame(list_of_data[2])
+      
+      MSSA476_commongenes=as.data.frame(sapply(MSSA476_commongenes_1, as.numeric))
+      rownames(MSSA476_commongenes)= rownames(MSSA476_commongenes_1)
+      MRSA252_commongenes=as.data.frame(sapply(MRSA252_commongenes_1, as.numeric))
+      rownames(MRSA252_commongenes)= rownames(MRSA252_commongenes_1)
+      
+      nSets=2
+      setLabels_analysis["MSSA476 vs MRSA252"]= list(c("Strain MSSA476", "Strain MRSA252"))
+      shortLabels = c("MSSA476", "MRSA252")
+      MSSA476_MRSA252_multiExpr = vector(mode = "list", length = nSets)
+      
+      MSSA476_commongenes_t = t(MSSA476_commongenes)
+      MRSA252_commongenes_t = t(MRSA252_commongenes)
+      MSSA476_commongenes_t_ord = MSSA476_commongenes_t[ , order(colnames(MSSA476_commongenes_t))]
+      MRSA252_commongenes_t_ord = MRSA252_commongenes_t[ , order(colnames(MRSA252_commongenes_t))]
+      
+      MSSA476_MRSA252_multiExpr[[1]] = list(data = MSSA476_commongenes_t_ord)
+      MSSA476_MRSA252_multiExpr[[2]] = list(data = MRSA252_commongenes_t_ord)
+      
+      names(MSSA476_MRSA252_multiExpr[[1]]$data) = colnames(MSSA476_commongenes_t_ord)
+      names(MSSA476_MRSA252_multiExpr[[2]]$data) = colnames(MRSA252_commongenes_t_ord)
+      
+      
+    
+   datasetInputCore <- reactive({
         switch(input$dataset_core,
                "UPEC vs EPEC" = (UPEC_EPEC_multiExpr),
                "UPEC vs ETEC" = (UPEC_ETEC_multiExpr),
@@ -6400,7 +6340,20 @@ server <-function(input, output,session) {
     output$mytable2_core <- DT::renderDataTable({showModal(modalDialog(title = "Gene expression:","Computing z-score per gene...", footer=NULL))
       on.exit(removeModal()) 
         dat2Core()
-        return(datatable(dat2Core(), extensions = 'Buttons',options = list(paging=TRUE, lengthMenu=c(50,100,150), scrollX = FALSE,lengthChange = T, regex= FALSE, searching = TRUE,initComplete = JS(js),dom = 'Bfrtip',buttons = c('copy', 'csv', 'excel')),rownames=FALSE, class = "display") %>% formatStyle(names(dat2Core()[-1:-3]), backgroundColor = styleInterval(brks, clrs)))
+        return(datatable(dat2Core(), extensions = 'Buttons',options = list(paging=FALSE, lengthMenu=c(50,100,150), scrollX = FALSE,lengthChange = T, regex= FALSE, searching = TRUE,initComplete = JS(js),dom = 'Bfrtip',buttons = list(
+          list(
+            extend = "copy",
+            filename = "dataset_copy"
+          ),
+          list(
+            extend = "csv",
+            filename = "dataset_csv"
+          ),
+          list(
+            extend = "excel",
+            filename = "dataset_excel"
+          )
+        )),rownames=FALSE, class = "display") %>% formatStyle(names(dat2Core()[-1:-3]), backgroundColor = styleInterval(brks, clrs)))
         #options = list(paging=FALSE, scrollX = FALSE), 
         #rownames=TRUE, 
         #filter = "top"
@@ -6591,6 +6544,149 @@ server <-function(input, output,session) {
       on.exit(removeModal())
         
         graph2InputCore()}, height = 500, width = 700 )
+ #### Download handler core   
+    output$download_heatmap_core <- downloadHandler(
+      
+      filename = function() { paste(input$textforcolor_core, 'Heatmap_core.png', sep='') },
+      
+      content = function(file) {
+        showModal(modalDialog("Loading heatmap....", footer=NULL))
+        on.exit(removeModal())
+        png(filename = file, width = 700, height = 500, units='mm', res = 300)
+        #dataset <- datasetInput()
+        multiExpr <- datasetInputCore()
+        exprSize = checkSets(multiExpr)
+        gsg = goodSamplesGenesMS(multiExpr, verbose = 3);
+        gsg$allOK
+        
+        if (!gsg$allOK)
+        {
+          # Print information about the removed genes:
+          if (sum(!gsg$goodGenes) > 0)
+            printFlush(paste("Removing genes:", paste(names(multiExpr[[1]]$data)[!gsg$goodGenes], 
+                                                      collapse = ", ")))
+          for (set in 1:exprSize$nSets)
+          {
+            if (sum(!gsg$goodSamples[[set]]))
+              printFlush(paste("In set", setLabels[set], "removing samples",
+                               paste(rownames(multiExpr[[set]]$data)[!gsg$goodSamples[[set]]], collapse = ", ")))
+            # Remove the offending genes and samples
+            multiExpr[[set]]$data = multiExpr[[set]]$data[gsg$goodSamples[[set]], gsg$goodGenes];
+          }
+          # Update exprSize
+          exprSize = checkSets(multiExpr)
+        }
+        
+        
+        powerin_core <- input$powerin_core
+        mingene_core <- input$mingene_core
+        
+        net = blockwiseConsensusModules(
+          multiExpr, power = powerin_core, minModuleSize = mingene_core, deepSplit = 2,
+          pamRespectsDendro = FALSE, 
+          mergeCutHeight = 0.25, numericLabels = TRUE,
+          minKMEtoStay = 0,
+          saveTOMs = FALSE, verbose = 5)
+        consMEs = net$multiMEs;
+        moduleLabels = net$colors;
+        moduleColors = labels2colors(moduleLabels)
+        consTree = net$dendrograms[[1]]; 
+        
+        #MEs = net$MEs
+        #datME=moduleEigengenes(dataset,moduleColors)$eigengenes
+        colorh1=moduleColors
+        which.module=input$textforcolor_core
+        # par(mar=c(0.3, 15.5, 8, 2))
+        # plotMat(t(scale(dataset[,colorh1==which.module]) ),nrgcols=30,rlabels=NULL,rcols="black",clabels=rownames(dataset),cex.lab=0.7)
+        datME_1=moduleEigengenes(multiExpr[[1]]$data,moduleColors)$eigengenes
+        ME=datME_1[, paste("ME",which.module, sep="")]
+        col1 <- colorRampPalette(brewer.pal(7, "RdYlBu"))(256)
+        col <- rev(col1)
+        par(mar=c(1, 1, 1, 1))
+        dataset1=scale(multiExpr[[1]]$data)
+        dataset2=scale(multiExpr[[2]]$data)
+        #dataset3= rbind(dataset1,dataset2)
+        heatmap(t(rbind(dataset1[,colorh1==which.module], dataset2[,colorh1==which.module])), scale = "row", col =  col, Colv=NA, ColSideColors= rep(c("black", "grey") , each = nrow(multiExpr[[2]]$data)),margins=c(6,10),keep.dendro = TRUE, main= as.character(input$dataset_core) )
+        legend(x="topright", legend=c("-3SD", "-2SD","-1SD","0","+1SD", "+2SD", "+3SD"),fill=c("#4575b4","#91bfdb","#e0f3f8","#ffffbf","#fee090","#fc8d59","#d73027"))
+        #plotMat(t(scale(multiExpr[[1]]$data[,colorh1==which.module ]) ),nrgcols=30,rlabels=colnames(multiExpr[[1]]$data[,colorh1==which.module ]),rcols=which.module,clabels=rownames(multiExpr[[1]]$data), cex.main=0.7)
+        #datME_2=moduleEigengenes(multiExpr[[2]]$data,moduleColors)$eigengenes
+        #ME=datME_2[, paste("ME",which.module, sep="")]in
+        #plotMat(t(scale(multiExpr[[2]]$data[,colorh1==which.module ]) ),nrgcols=30,rlabels=colnames(multiExpr[[2]]$data[,colorh1==which.module ]),rcols=which.module,clabels=rownames(multiExpr[[2]]$data), cex.main=0.7)
+        legend(x="right", legend=c("Strain1", "Strain2"),fill=c("black","grey"))
+        
+        dev.off()
+      })
+    
+    output$download_barplot_core <- downloadHandler(
+      
+      filename = function() { paste(input$textforcolor_core, 'MEbarplot_core.png', sep='') },
+      
+      content = function(file) {
+        showModal(modalDialog("Loading ME barplot...", footer=NULL))
+        on.exit(removeModal())
+        png(filename = file, width = 350, height = 200, units='mm', res = 300)
+        multiExpr <- datasetInputCore()
+        exprSize = checkSets(multiExpr)
+        gsg = goodSamplesGenesMS(multiExpr, verbose = 3);
+        gsg$allOK
+        
+        if (!gsg$allOK)
+        {
+          # Print information about the removed genes:
+          if (sum(!gsg$goodGenes) > 0)
+            printFlush(paste("Removing genes:", paste(names(multiExpr[[1]]$data)[!gsg$goodGenes], 
+                                                      collapse = ", ")))
+          for (set in 1:exprSize$nSets)
+          {
+            if (sum(!gsg$goodSamples[[set]]))
+              printFlush(paste("In set", setLabels[set], "removing samples",
+                               paste(rownames(multiExpr[[set]]$data)[!gsg$goodSamples[[set]]], collapse = ", ")))
+            # Remove the offending genes and samples
+            multiExpr[[set]]$data = multiExpr[[set]]$data[gsg$goodSamples[[set]], gsg$goodGenes];
+          }
+          # Update exprSize
+          exprSize = checkSets(multiExpr)
+        }
+        
+        
+        powerin_core <- input$powerin_core
+        mingene_core <- input$mingene_core
+        
+        net = blockwiseConsensusModules(
+          multiExpr, power = powerin_core, minModuleSize = mingene_core, deepSplit = 2,
+          pamRespectsDendro = FALSE, 
+          mergeCutHeight = 0.25, numericLabels = TRUE,
+          minKMEtoStay = 0,
+          saveTOMs = FALSE, verbose = 5)
+        consMEs = net$multiMEs;
+        moduleLabels = net$colors;
+        moduleColors = labels2colors(moduleLabels)
+        consTree = net$dendrograms[[1]]; 
+        
+        #MEs = net$MEs
+        #datME=moduleEigengenes(dataset,moduleColors)$eigengenes
+        colorh1=moduleColors
+        which.module=input$textforcolor_core
+        # par(mar=c(0.3, 15.5, 8, 2))
+        # plotMat(t(scale(dataset[,colorh1==which.module]) ),nrgcols=30,rlabels=NULL,rcols="black",clabels=rownames(dataset),cex.lab=0.7)
+        datME_1=moduleEigengenes(multiExpr[[1]]$data,moduleColors)$eigengenes
+        ME=datME_1[, paste("ME",which.module, sep="")]
+        par(mfrow=c(1,2), mar=c(11,4,2,0.1))
+        colors_bar= ifelse(ME<0, "blue", "red")  
+        
+        barplot(ME, col=t(colors_bar), main="", cex.lab=0.7,ylab="eigengene expression",xlab="",names.arg= rownames(multiExpr[[1]]$data), las=2, cex.names=0.7)   
+        
+        #  plotMat(t(scale(multiExpr[[1]]$data[,colorh1==which.module ]) ),nrgcols=30,rlabels=colnames(multiExpr[[1]]$data[,colorh1==which.module ]),rcols=which.module,clabels=rownames(multiExpr[[1]]$data), cex.main=0.7)
+        datME_2=moduleEigengenes(multiExpr[[2]]$data,moduleColors)$eigengenes
+        ME=datME_2[, paste("ME",which.module, sep="")]
+        #    plotMat(t(scale(multiExpr[[2]]$data[,colorh1==which.module ]) ),nrgcols=30,rlabels=colnames(multiExpr[[2]]$data[,colorh1==which.module ]),rcols=which.module,clabels=rownames(multiExpr[[2]]$data), cex.main=0.7)
+        
+        colors_bar= ifelse(ME<0, "blue", "red")  
+        #par(mar=c(5, 4.2, 0, 0.85))
+        barplot(ME, col=t(colors_bar), main="", cex.lab=0.7,ylab="eigengene expression",xlab="",names.arg= rownames(multiExpr[[2]]$data), las=2, cex.names=0.7)   
+        
+        dev.off()
+      })   
     
     output$consensus_graph_core <- renderPlot({
       multiExpr <- datasetInputCore()
@@ -6635,8 +6731,153 @@ server <-function(input, output,session) {
       par(cex = 0.6)
       #dataser_for_core= input$dataset_core
       setLabels=setLabels_analysis[[eval(input$dataset_core)]]
-      plotEigengeneNetworks(MET, setLabels, marDendro = c(0,2,2,1), marHeatmap = c(3,3,2,1),
-                            zlimPreservation = c(0.5, 1), xLabelsAngle = 90)
+      ### Functions_consensus #######
+      
+      plotEigengeneNetworks_custom <- function (multiME, setLabels, letterSubPlots = FALSE, Letters = NULL, 
+                                                excludeGrey = TRUE, greyLabel = "grey", plotDendrograms = TRUE, 
+                                                plotHeatmaps = TRUE, setMargins = TRUE, marDendro = NULL, 
+                                                marHeatmap = NULL, colorLabels = TRUE, signed = TRUE, heatmapColors = NULL, 
+                                                plotAdjacency = TRUE, printAdjacency = FALSE, cex.adjacency = 0.9, 
+                                                coloredBarplot = TRUE, barplotMeans = TRUE, barplotErrors = FALSE, 
+                                                plotPreservation = "standard", zlimPreservation = c(0, 1), 
+                                                printPreservation = FALSE, cex.preservation = 0.9, ...) 
+      {
+        size = checkSets(multiME, checkStructure = TRUE)
+        if (!size$structureOK) {
+          multiME = fixDataStructure(multiME)
+        }
+        if (is.null(Letters)) 
+          Letters = "ABCEFDEFGHIJKLMNOPQRSTUVWXYZ"
+        if (is.null(heatmapColors)) 
+          if (signed) {
+            heatmapColors = blueWhiteRed(50)
+          }
+        else {
+          heatmapColors = heat.colors(30)
+        }
+        nSets = length(multiME)
+        cex = par("cex")
+        mar = par("mar")
+        nPlotCols = nSets
+        nPlotRows = as.numeric(plotDendrograms) + nSets * as.numeric(plotHeatmaps)
+        if (nPlotRows == 0) 
+          stop("Nothing to plot: neither dendrograms not heatmaps requested.")
+        par(mfrow = c(nPlotRows, nPlotCols))
+        par(cex = cex)
+        if (excludeGrey) 
+          for (set in 1:nSets) multiME[[set]]$data = multiME[[set]]$data[, 
+                                                                         substring(names(multiME[[set]]$data), 3) != greyLabel]
+        plotPresTypes = c("standard", "hyperbolic", "both")
+        ipp = pmatch(plotPreservation, plotPresTypes)
+        if (is.na(ipp)) 
+          stop(paste("Invalid 'plotPreservation'. Available choices are", 
+                     paste(plotPresTypes, sep = ", ")))
+        letter.ind = 1
+        if (plotDendrograms) 
+          for (set in 1:nSets) {
+            par(mar = marDendro)
+            labels = names(multiME[[set]]$data)
+            uselabels = labels[substring(labels, 3) != greyLabel]
+            corME = cor(multiME[[set]]$data[substring(labels, 
+                                                      3) != greyLabel, substring(labels, 3) != greyLabel], 
+                        use = "p")
+            disME = as.dist(1 - corME)
+            clust = fastcluster::hclust(disME, method = "average")
+            if (letterSubPlots) {
+              main = paste(substring(Letters, letter.ind, letter.ind), 
+                           ". ", setLabels[set], sep = "")
+            }
+            else {
+              main = setLabels[set]
+            }
+            plotLabels = uselabels
+            plot(clust, main = main, sub = "", xlab = "", labels = plotLabels, 
+                 ylab = "", ylim = c(0, 1))
+            letter.ind = letter.ind + 1
+          }
+        if (plotHeatmaps) 
+          for (i.row in (1:nSets)) for (i.col in (1:nSets)) {
+            letter.ind = i.row * nSets + i.col
+            if (letterSubPlots) {
+              letter = paste(substring(Letters, first = letter.ind, 
+                                       last = letter.ind), ".  ", sep = "")
+            }
+            else {
+              letter = NULL
+            }
+            par(cex = cex)
+            if (setMargins) {
+              if (is.null(marHeatmap)) {
+                if (colorLabels) {
+                  par(mar = c(1, 2, 3, 4) + 0.2)
+                }
+                else {
+                  par(mar = c(6, 7, 3, 5) + 0.2)
+                }
+              }
+              else {
+                par(mar = marHeatmap)
+              }
+            }
+            nModules = dim(multiME[[i.col]]$data)[2]
+            textMat = NULL
+            if (i.row == i.col) {
+              corME = cor(multiME[[i.col]]$data, use = "p")
+              pME = corPvalueFisher(corME, nrow(multiME[[i.col]]$data))
+              if (printAdjacency) {
+                textMat = paste(signif(corME, 2), "\n", signif(pME, 
+                                                               1))
+                dim(textMat) = dim(corME)
+              }
+              if (signed) {
+                if (plotAdjacency) {
+                  if (printAdjacency) {
+                    textMat = paste(signif((1 + corME)/2, 2), 
+                                    "\n", signif(pME, 1))
+                    dim(textMat) = dim(corME)
+                  }
+                  labeledHeatmap((1 + corME)/2, names(multiME[[i.col]]$data), 
+                                 names(multiME[[i.col]]$data), main = paste(letter, 
+                                                                            setLabels[[i.col]]), invertColors = FALSE, 
+                                 zlim = c(0, 1), colorLabels = colorLabels, 
+                                 colors = heatmapColors, setStdMargins = FALSE, 
+                                 textMatrix = textMat, cex.text = cex.adjacency, 
+                                 ...)
+                }
+                else {
+                  labeledHeatmap(corME, names(multiME[[i.col]]$data), 
+                                 names(multiME[[i.col]]$data), main = paste(letter, 
+                                                                            setLabels[[i.col]]), invertColors = FALSE, 
+                                 zlim = c(-1, 1), colorLabels = colorLabels, 
+                                 colors = heatmapColors, setStdMargins = FALSE, 
+                                 textMatrix = textMat, cex.text = cex.adjacency, 
+                                 ...)
+                }
+              }
+              else {
+                labeledHeatmap(abs(corME), names(multiME[[i.col]]$data), 
+                               names(multiME[[i.col]]$data), main = paste(letter, 
+                                                                          setLabels[[i.col]]), invertColors = FALSE, 
+                               zlim = c(0, 1), colorLabels = colorLabels, 
+                               colors = heatmapColors, setStdMargins = FALSE, 
+                               textMatrix = textMat, cex.text = cex.adjacency, 
+                               ...)
+              }
+            }
+            
+          }
+        datME_1=moduleEigengenes(multiExpr[[1]]$data,moduleColors)$eigengenes
+        datME_2=moduleEigengenes(multiExpr[[2]]$data,moduleColors)$eigengenes
+        #main = paste("E", setLabels[[1]])
+        mod_prueba <- cor(datME_1,datME_2)
+        par(mar = c(3,3,2,1))
+        labeledHeatmap(Matrix = mod_prueba, xLabels=rownames(mod_prueba), invertColors = TRUE, main = paste("E.", setLabels[[1]], "vs", setLabels[[2]]), setStdMargins = FALSE)
+        
+      }
+      
+      #####END_consensus########
+      
+      plotEigengeneNetworks_custom(MET, setLabels, marDendro = c(0,2,2,1), marHeatmap = c(3,3,2,1), xLabelsAngle = 90, letterSubPlots = TRUE)
     })
     
     ########STIMULONS###########
@@ -6645,25 +6886,25 @@ server <-function(input, output,session) {
       switch(input$select_acid_stress,
              "Burkholderia pseudomallei As (+)" = (Burkholderia_pseudomallei_expr_As),
              "Escherichia coli UPEC As (+) Sp (-)" = (Escherichia_coli_UPEC_536_expr_As),
-             "Escherichia coli EPEC As (+) (I)"= (Escherichia_coli_EPEC_0127_H6_E2348_69_expr_As),
-             "Escherichia coli EPEC As (+) (II)"=(Escherichia_coli_EPEC_0127_H6_E2348_69_expr_As2),
-             "Enterococcus faecalis As (+)" =(Enterococcus_faecalis_expr_As),
-             "Listeria monocytogenes As (+)"= (Listeria_monocytogenes_expr_As),
+             "Escherichia coli EPEC As (+) (I)" = (Escherichia_coli_EPEC_0127_H6_E2348_69_expr_As),
+             "Escherichia coli EPEC As (+) (II)" = (Escherichia_coli_EPEC_0127_H6_E2348_69_expr_As2),
+             "Enterococcus faecalis As (+)" = (Enterococcus_faecalis_expr_As),
+             "Listeria monocytogenes As (+)" = (Listeria_monocytogenes_expr_As),
              "Pseudomonas aeruginosa As (+)" = (Pseudomonas_aeruginosa_expr_As),
              "Pseudomonas aeruginosa As (+) Tm (+)" = (Pseudomonas_aeruginosa_expr_As_Tm),
-             "Escherichia coli ETEC As (+)"= (Escherichia_coli_ETEC_H10407_expr_As),
-             "Salmonella enterica As (+)"= (Salmonella_expr_As),
-             "Staphylococcus aureus MSSA476 As (+)"= (Staphylococcus_aureus_MSSA476_expr_As),
-             "Staphylococcus aureus MSSA476 As (+) Ns (-)"= (Staphylococcus_aureus_MSSA476_expr_As_Ns),
-             "Staphylococcus aureus MRSA252 As (+)"= (Staphylococcus_aureus_MRSA252_expr_As),
+             "Escherichia coli ETEC As (+)" = (Escherichia_coli_ETEC_H10407_expr_As),
+             "Salmonella enterica As (+)" = (Salmonella_expr_As),
+             "Staphylococcus aureus MSSA476 As (+)" = (Staphylococcus_aureus_MSSA476_expr_As),
+             "Staphylococcus aureus MSSA476 As (+) Ns (-)" = (Staphylococcus_aureus_MSSA476_expr_As_Ns),
+             "Staphylococcus aureus MRSA252 As (+)" = (Staphylococcus_aureus_MRSA252_expr_As),
              "Klebsiella pneumoniae As (+) Sp (-)" = (Klebsiella_pneumoniae_expr_As_Sp),
              "Staphylococcus epidermidis As (+)" = (Staphylococcus_epidermidis_expr_As),
              "Shigella flexneri As (+)" = (Shigella_flexneri_expr_As),
              
-             "Staphylococcus epidermidis As (+) Mig (+) "=(Staphylococcus_epidermidis_expr_Mig_up_As_up),
-             "Listeria monocytogenes As (+) Oxs (+)" =(Listeria_monocytogenes_expr_Oxs_up_As_up),
-             "Listeria monocytogenes As (+) Nd (-)"=(Listeria_monocytogenes_expr_As_up_Nd_down),
-             "Staphylococcus epidermidis As (+) Tm (-)"=(Staphylococcus_epidermidis_expr_As_up_Tm_down)
+             "Staphylococcus epidermidis As (+) Mig (+) " = (Staphylococcus_epidermidis_expr_Mig_up_As_up),
+             "Listeria monocytogenes As (+) Oxs (+)" = (Listeria_monocytogenes_expr_Oxs_up_As_up),
+             "Listeria monocytogenes As (+) Nd (-)" = (Listeria_monocytogenes_expr_As_up_Nd_down),
+             "Staphylococcus epidermidis As (+) Tm (-)" = (Staphylococcus_epidermidis_expr_As_up_Tm_down)
              
       )
     })
@@ -6733,12 +6974,102 @@ server <-function(input, output,session) {
       # boxplot(t(AcidStress))
     })
     
-    
-    
     output$Acidstress_boxplot <- renderPlot(
       
       box_plot_AS()
     )
+    
+    box_plot_AS_test <- reactive({
+      AcidStress <- datasetInputStimulonAcid()
+      if (nrow(AcidStress) == 36 ) {
+        
+        generic_stress_sample_names=c("As_1","As_2","As_3","Bs_1","Bs_2","Bs_3","Ctrl_1","Ctrl_2","Ctrl_3","Li_1","Li_2","Li_3","Mig_1","Mig_2","Mig_3","Nd_1","Nd_2","Nd_3","Ns_1","Ns_2","Ns_3","Oss_1","Oss_2","Oss_3","Oxs_1","Oxs_2","Oxs_3","Sp_1","Sp_2","Sp_3","Tm_1","Tm_2","Tm_3","Vic_1","Vic_2","Vic_3")
+        #Vibrio_expr_1 = scale(Vibrio_expr[,colorh1==which.module ])
+        ME_lengthOfVector=rep(NA, ncol(AcidStress)*36)
+        Module_names <- rep(colnames(AcidStress),36)
+        lengthOfVector_col=ncol(AcidStress)
+        position_ME=1
+        for(i in 1:lengthOfVector_col) {
+          for(j in 1:36) {
+            ME_lengthOfVector[position_ME] <- AcidStress[j,i]
+            Module_names[position_ME] <-      colnames(AcidStress)[i]
+            position_ME = position_ME+1
+          }
+          position_ME = i*36+1
+        }
+        stress=rep(generic_stress_sample_names,ncol(AcidStress))
+        stress_1 <- gsub("_1","", stress)
+        stress_2 <- gsub("_2","", stress_1)
+        stress_3 <- gsub("_3","", stress_2)
+        stress=stress_3
+        
+        ME_Kruskall_dataset = as.data.frame(cbind(ME_lengthOfVector,stress, Module_names))
+        colnames(ME_Kruskall_dataset) <- c("MEigengene", "Stress", "Module_names")
+        #Plot <- ggplot(ME_Kruskall_dataset, aes(x=ME_Kruskall_dataset[,2], y=as.numeric(ME_Kruskall_dataset[,1]), fill = ME_Kruskall_dataset[,2])) +  labs(y="Standard deviation of gene expression", x = "Stress conditions")
+        #Plot + geom_violin( width=1, color="white" ) +geom_boxplot(width = .1, color= "black", alpha = .5) +scale_fill_brewer(palette = "Paired", aesthetics = "fill",guide = "none") +theme_classic(base_size = 16)
+        
+        return(pairwise.wilcox.test(as.numeric(ME_Kruskall_dataset[,1]),ME_Kruskall_dataset[,2],p.adjust.method = "BH"))
+        
+      } 
+      
+      else if (nrow(AcidStress) == 33 ) {
+        
+        generic_stress_sample_names=c("As_1","As_2","As_3","Ctrl_1","Ctrl_2","Ctrl_3","Li_1","Li_2","Li_3","Mig_1","Mig_2","Mig_3","Nd_1","Nd_2","Nd_3","Ns_1","Ns_2","Ns_3","Oss_1","Oss_2","Oss_3","Oxs_1","Oxs_2","Oxs_3","Sp_1","Sp_2","Sp_3","Tm_1","Tm_2","Tm_3","Vic_1","Vic_2","Vic_3")
+        #Vibrio_expr_1 = scale(Vibrio_expr[,colorh1==which.module ])
+        ME_lengthOfVector=rep(NA, ncol(AcidStress)*33)
+        Module_names <- rep(colnames(AcidStress),33)
+        lengthOfVector_col=ncol(AcidStress)
+        position_ME=1
+        for(i in 1:lengthOfVector_col) {
+          for(j in 1:33) {
+            ME_lengthOfVector[position_ME] <- AcidStress[j,i]
+            Module_names[position_ME] <-      colnames(AcidStress)[i]
+            position_ME = position_ME+1
+          }
+          position_ME = i*33+1
+        }
+        stress=rep(generic_stress_sample_names,ncol(AcidStress))
+        stress_1 <- gsub("_1","", stress)
+        stress_2 <- gsub("_2","", stress_1)
+        stress_3 <- gsub("_3","", stress_2)
+        stress=stress_3
+        
+        ME_Kruskall_dataset = as.data.frame(cbind(ME_lengthOfVector,stress, Module_names))
+        colnames(ME_Kruskall_dataset) <- c("MEigengene", "Stress", "Module_names")
+        #Plot <- ggplot(ME_Kruskall_dataset, aes(x=ME_Kruskall_dataset[,2], y=as.numeric(ME_Kruskall_dataset[,1]), fill = ME_Kruskall_dataset[,2])) +  labs(y="Standard deviation of gene expression", x = "Stress conditions")
+        #Plot + geom_violin( width=1, color="white") +geom_boxplot(width = .1, color= "black", alpha = .5) +scale_fill_brewer(palette = "Paired", aesthetics = "fill",guide = "none") +theme_classic(base_size = 16)
+        return(pairwise.wilcox.test(as.numeric(ME_Kruskall_dataset[,1]),ME_Kruskall_dataset[,2],p.adjust.method = "BH"))
+      } 
+      
+      
+      # boxplot(t(AcidStress))
+    })
+    
+  
+    
+    output$mytableAs2 <- renderTable({
+      test_result <- box_plot_AS_test()
+      
+      # Extract matrix of p-values from the test result
+      pvals_matrix <- test_result$p.value
+      
+      # Convert p-values to asterisks based on significance
+      pvals_matrix[pvals_matrix < 0.001] <- "***"
+      pvals_matrix[pvals_matrix >= 0.001 & pvals_matrix < 0.01] <- "**"
+      pvals_matrix[pvals_matrix >= 0.01 & pvals_matrix < 0.05] <- "*"
+      pvals_matrix[pvals_matrix >= 0.05] <- "ns"
+      
+      # Set the upper triangle values to ""
+      pvals_matrix[upper.tri(pvals_matrix, diag = FALSE)] <- ""
+      
+      # Convert the matrix to a data frame to have row names as an explicit column
+      df <- data.frame(Group = rownames(pvals_matrix), pvals_matrix)
+      
+      df
+  
+    })
+    
+   
     
     datAs <- reactive({
       dataset_As <- datasetInputStimulonAcid()
@@ -6774,7 +7105,20 @@ server <-function(input, output,session) {
     
     output$mytableAs <- DT::renderDataTable({datAs()
       
-      return(datatable(datAs(), extensions = 'Buttons',options = list(paging=TRUE, lengthMenu=c(50,100,150), scrollX = FALSE,lengthChange = T, regex= FALSE, searching = TRUE,initComplete = JS(js),dom = 'Bfrtip',buttons = c('copy', 'csv', 'excel')),rownames=FALSE, class = "display") %>% formatStyle(names(datAs()[-1:-3]), backgroundColor = styleInterval(brks, clrs)))
+      return(datatable(datAs(), extensions = 'Buttons',options = list(paging=FALSE, lengthMenu=c(50,100,150), scrollX = FALSE,lengthChange = T, regex= FALSE, searching = TRUE,initComplete = JS(js),dom = 'Bfrtip',buttons = list(
+        list(
+          extend = "copy",
+          filename = "dataset_copy"
+        ),
+        list(
+          extend = "csv",
+          filename = "dataset_csv"
+        ),
+        list(
+          extend = "excel",
+          filename = "dataset_excel"
+        )
+      )),rownames=FALSE, class = "display") %>% formatStyle(names(datAs()[-1:-3]), backgroundColor = styleInterval(brks, clrs)))
       #options = list(paging=FALSE, scrollX = FALSE), 
       #rownames=TRUE, 
       #filter = "top"
@@ -6787,67 +7131,67 @@ server <-function(input, output,session) {
              "Acinetobacter baumannii Sp (-) (I)" = (Acinetobacter_baumannii_expr_Sp1),
              "Acinetobacter baumannii Sp (-) (II)" = (Acinetobacter_baumannii_expr_Sp2),
              "Acinetobacter baumannii Sp (-) (III)" = (Acinetobacter_baumannii_expr_Sp3),
-             "Acinetobacter baumannii Sp (-) (IV)"=(Acinetobacter_baumannii_expr_Sp4),
+             "Acinetobacter baumannii Sp (-) (IV)" = (Acinetobacter_baumannii_expr_Sp4),
              "Streptococcus pyogenes Sp (-) Mig (-) (I)" = (Streptococcus_pyogenes_expr_Sp_Mg),
              "Burkholderia pseudomallei Sp (-)" = (Burkholderia_pseudomallei_expr_Sp_down),
-             "Burkholderia pseudomallei Sp (+)"=(Burkholderia_pseudomallei_expr_Sp_up),
-             "Enterococcus faecalis Sp (+)"=(Enterococcus_faecalis_expr_Sp_up),
-             "Achromobacter xylosoxidans Sp (+)"=(Achromobacter_xylosoxidans_expr_Sp),
-             "Borrelia burgdorferi Sp (+) (I)"=(Borrelia_burgdorferi_expr_Sp),
-             "Borrelia burgdorferi Sp (+) (II)"=(Borrelia_burgdorferi_expr_Sp2),
-             "Burkholderia pseudomallei Sp (+) Tm (+)"=(Burkholderia_pseudomallei_expr_Sp_Tm),
-             "Campylobacter jejuni Sp (+)"=(Campylobacter_jejuni_expr_Sp),
-             "Escherichia coli EPEC Sp (+)"=(Escherichia_coli_EPEC_0127_H6_E2348_69_expr_Sp),
-             "Escherichia coli ETEC Sp (+)"=(Escherichia_coli_ETEC_expr_Sp),
-             "Francisella tularensis Sp (+)"=(Francisella_tularensis_expr_Sp),
-             "Haemophilus influenzae Sp (+) (I)"=(Haemophilus_influenzae_expr_Sp),
-             "Haemophilus influenzae Sp (+) (II)"=(Haemophilus_influenzae_expr_Sp2),
-             "Helicobacter pylori G27 Sp (+)"=(Helicobacter_pylori_G27_expr_Sp),
-             "Klebsiella pneumoniae Sp (+)"= (Klebsiella_pneumoniae_expr_Sp),
+             "Burkholderia pseudomallei Sp (+)" = (Burkholderia_pseudomallei_expr_Sp_up),
+             "Enterococcus faecalis Sp (+)" = (Enterococcus_faecalis_expr_Sp_up),
+             "Achromobacter xylosoxidans Sp (+)" = (Achromobacter_xylosoxidans_expr_Sp),
+             "Borrelia burgdorferi Sp (+) (I)" = (Borrelia_burgdorferi_expr_Sp),
+             "Borrelia burgdorferi Sp (+) (II)" = (Borrelia_burgdorferi_expr_Sp2),
+             "Burkholderia pseudomallei Sp (+) Tm (+)" = (Burkholderia_pseudomallei_expr_Sp_Tm),
+             "Campylobacter jejuni Sp (+)" = (Campylobacter_jejuni_expr_Sp),
+             "Escherichia coli EPEC Sp (+)" = (Escherichia_coli_EPEC_0127_H6_E2348_69_expr_Sp),
+             "Escherichia coli ETEC Sp (+)" = (Escherichia_coli_ETEC_expr_Sp),
+             "Francisella tularensis Sp (+)" = (Francisella_tularensis_expr_Sp),
+             "Haemophilus influenzae Sp (+) (I)" = (Haemophilus_influenzae_expr_Sp),
+             "Haemophilus influenzae Sp (+) (II)" = (Haemophilus_influenzae_expr_Sp2),
+             "Helicobacter pylori G27 Sp (+)" = (Helicobacter_pylori_G27_expr_Sp),
+             "Klebsiella pneumoniae Sp (+)" = (Klebsiella_pneumoniae_expr_Sp),
              "Listeria monocytogenes Sp (+) Vic (+)" = (Listeria_monocytogenes_expr_Sp_Vic_up),
-             "Staphylococcus aureus MRSA252 Sp (+)"=(Staphylococcus_aureus_MRSA252_expr_Sp_up),
-             "Staphylococcus aureus MSSA476 Sp (+) Nd (+)"=(Staphylococcus_aureus_MSSA476_expr_Sp_up_Nd_up),
-             "Staphylococcus aureus MSSA476 Sp (+)"=(Staphylococcus_aureus_MSSA476_expr_Sp_up),
-             "Neisseria gonorrhoeae Sp (+) (I)"=(Neisseria_gonorrhoeae_expr_Sp1_up),
-             "Neisseria gonorrhoeae Sp (+) (II)"=(Neisseria_gonorrhoeae_expr_Sp2_up),
-             "Neisseria meningitidis Sp (+) Li (+)"= (Neisseria_meningitidis_expr_Sp_up_Li_up),
-             "Neisseria meningitidis Sp (+)"=(Neisseria_meningitidis_Sp_up),
+             "Staphylococcus aureus MRSA252 Sp (+)" = (Staphylococcus_aureus_MRSA252_expr_Sp_up),
+             "Staphylococcus aureus MSSA476 Sp (+) Nd (+)" = (Staphylococcus_aureus_MSSA476_expr_Sp_up_Nd_up),
+             "Staphylococcus aureus MSSA476 Sp (+)" = (Staphylococcus_aureus_MSSA476_expr_Sp_up),
+             "Neisseria gonorrhoeae Sp (+) (I)" = (Neisseria_gonorrhoeae_expr_Sp1_up),
+             "Neisseria gonorrhoeae Sp (+) (II)" = (Neisseria_gonorrhoeae_expr_Sp2_up),
+             "Neisseria meningitidis Sp (+) Li (+)" = (Neisseria_meningitidis_expr_Sp_up_Li_up),
+             "Neisseria meningitidis Sp (+)" = (Neisseria_meningitidis_Sp_up),
              "Pseudomonas aeruginosa Sp (+) Nd (+)" = (Pseudomonas_aeruginosa_expr_Sp_up_Nd_up),
-             "Pseudomonas aeruginosa Sp (+)"=(Pseudomonas_aeruginosa_expr_Sp_up),
-             "Salmonella enterica Sp (+) (I)"=(Salmonella_enterica_expr_Sp1_up),
-             "Salmonella enterica Sp (+) (II)"=(Salmonella_enterica_expr_Sp2_up),
-             "Staphylococcus epidermidis Sp (+) Tm (+)"=(Staphylococcus_epidermidis_expr_Sp_up_Tm_up),
-             "Staphylococcus epidermidis Sp (+)"=(Staphylococcus_epidermidis_expr_Sp_up),
-             "Shigella flexneri Sp (+)"=(Shigella_flexneri_expr_Sp_up),
-             "Streptococcus pneumoniae Sp (+) (I)"=(Streptococcus_pneumoniae_expr_Sp1_up),
-             "Streptococcus pneumoniae Sp (+) (II)"=(Streptococcus_pneumoniae_expr_Sp2_up),
-             "Escherichia coli UPEC Sp (+)"=(Escherichia_coli_UPEC_expr_Sp_up),
-             "Vibrio cholerae Sp (+) Li (+)"=(Vibrio_cholerae_expr_Sp_up_Li_up),
-             "Vibrio cholerae Sp (+)" =(Vibrio_cholerae_expr_Sp_up),
-             "Yersinia pseudotuberculosis Sp (+) (I)"=(Yersinia_pseudotuberculosis_expr_Sp1_up),
-             "Yersinia pseudotuberculosis Sp (+) (II)"=(Yersinia_pseudotuberculosis_expr_Sp2_up),
-             "Yersinia pseudotuberculosis Sp (+) Mig (-)"=(Yersinia_pseudotuberculosis_expr_Sp_up_Mig_down),
-             "Aggregatibacter actinomycetemcomitans Sp (+)"=(Aggregatibacter_actinomycetemcomitans_expr_Sp_up),
-             "Burkholderia pseudomallei Sp (+) Mig (+)"=(Burkholderia_pseudomallei_expr_Sp_up_Mig_up),
-             "Enterococcus faecalis Sp (+) Mig (+)"=(Enterococcus_faecalis_expr_Sp_up_Mig_up),
-             "Streptococcus pyogenes Sp (+) Mig (+)"=(Streptococcus_pyogenes_expr_Sp_up_Mig_up),
-             "Streptococcus agalactiae Sp (+)"=(Streptococcus_agalactiae_expr_Sp_up),
-             "Streptococcus agalactiae Sp (+) Mig (+)"=(Streptococcus_agalactiae_expr_Sp_up_Mig_up),
+             "Pseudomonas aeruginosa Sp (+)" = (Pseudomonas_aeruginosa_expr_Sp_up),
+             "Salmonella enterica Sp (+) (I)" = (Salmonella_enterica_expr_Sp1_up),
+             "Salmonella enterica Sp (+) (II)" = (Salmonella_enterica_expr_Sp2_up),
+             "Staphylococcus epidermidis Sp (+) Tm (+)" = (Staphylococcus_epidermidis_expr_Sp_up_Tm_up),
+             "Staphylococcus epidermidis Sp (+)" = (Staphylococcus_epidermidis_expr_Sp_up),
+             "Shigella flexneri Sp (+)" = (Shigella_flexneri_expr_Sp_up),
+             "Streptococcus pneumoniae Sp (+) (I)" = (Streptococcus_pneumoniae_expr_Sp1_up),
+             "Streptococcus pneumoniae Sp (+) (II)" = (Streptococcus_pneumoniae_expr_Sp2_up),
+             "Escherichia coli UPEC Sp (+)" = (Escherichia_coli_UPEC_expr_Sp_up),
+             "Vibrio cholerae Sp (+) Li (+)" = (Vibrio_cholerae_expr_Sp_up_Li_up),
+             "Vibrio cholerae Sp (+)" = (Vibrio_cholerae_expr_Sp_up),
+             "Yersinia pseudotuberculosis Sp (+) (I)" = (Yersinia_pseudotuberculosis_expr_Sp1_up),
+             "Yersinia pseudotuberculosis Sp (+) (II)" = (Yersinia_pseudotuberculosis_expr_Sp2_up),
+             "Yersinia pseudotuberculosis Sp (+) Mig (-)" = (Yersinia_pseudotuberculosis_expr_Sp_up_Mig_down),
+             "Aggregatibacter actinomycetemcomitans Sp (+)" = (Aggregatibacter_actinomycetemcomitans_expr_Sp_up),
+             "Burkholderia pseudomallei Sp (+) Mig (+)" = (Burkholderia_pseudomallei_expr_Sp_up_Mig_up),
+             "Enterococcus faecalis Sp (+) Mig (+)" = (Enterococcus_faecalis_expr_Sp_up_Mig_up),
+             "Streptococcus pyogenes Sp (+) Mig (+)" = (Streptococcus_pyogenes_expr_Sp_up_Mig_up),
+             "Streptococcus agalactiae Sp (+)" = (Streptococcus_agalactiae_expr_Sp_up),
+             "Streptococcus agalactiae Sp (+) Mig (+)" = (Streptococcus_agalactiae_expr_Sp_up_Mig_up),
              
              
              
-             "Escherichia coli UPEC Sp (-) As (+)"=(Escherichia_coli_UPEC_536_expr_As),
-             "Klebsiella pneumoniae Sp (-) As (+)"=(Klebsiella_pneumoniae_expr_As_Sp),
-             "Klebsiella pneumoniae Sp (-) Bs (+)"=(Klebsiella_pneumoniae_expr_Bs_Sp),
-             "Pseudomonas aeruginosa Sp (-) Ns (+) (I)"=(Pseudomonas_aeruginosa_expr_Ns1_up_Sp_down),
-             "Pseudomonas aeruginosa Sp (-) Ns (+) (II)"=(Pseudomonas_aeruginosa_expr_Ns2_up_Sp_down),
-             "Klebsiella pneumoniae Sp (-)"=(Klebsiella_pneumoniae_expr_Sp_down),
-             "Pseudomonas aeruginosa Sp (-) (I)"=(Pseudomonas_aeruginosa_expr_Sp_down),
-             "Pseudomonas aeruginosa Sp (-) (II)"=(Pseudomonas_aeruginosa_expr_Sp2_down),
-             "Streptococcus pyogenes Sp (-) Mig (-) (II)"=(Streptococcus_pyogenes_expr_Mig2_down_Sp_down),
-             "Streptococcus pyogenes Sp (-) Mig (-) Li (+)"=(Streptococcus_pyogenes_expr_Mig_Sp_Li),
-             "Escherichia coli UPEC Sp (-) Mig (-)"=(Escherichia_coli_UPEC_expr_Mig_Sp_down),
-             "Shigella flexneri Sp (-) Mig (-)"=(Shigella_flexneri_expr_Mig_Sp_down)
+             "Escherichia coli UPEC Sp (-) As (+)" = (Escherichia_coli_UPEC_536_expr_As),
+             "Klebsiella pneumoniae Sp (-) As (+)" = (Klebsiella_pneumoniae_expr_As_Sp),
+             "Klebsiella pneumoniae Sp (-) Bs (+)" = (Klebsiella_pneumoniae_expr_Bs_Sp),
+             "Pseudomonas aeruginosa Sp (-) Ns (+) (I)" = (Pseudomonas_aeruginosa_expr_Ns1_up_Sp_down),
+             "Pseudomonas aeruginosa Sp (-) Ns (+) (II)" = (Pseudomonas_aeruginosa_expr_Ns2_up_Sp_down),
+             "Klebsiella pneumoniae Sp (-)" = (Klebsiella_pneumoniae_expr_Sp_down),
+             "Pseudomonas aeruginosa Sp (-) (I)" = (Pseudomonas_aeruginosa_expr_Sp_down),
+             "Pseudomonas aeruginosa Sp (-) (II)" = (Pseudomonas_aeruginosa_expr_Sp2_down),
+             "Streptococcus pyogenes Sp (-) Mig (-) (II)" = (Streptococcus_pyogenes_expr_Mig2_down_Sp_down),
+             "Streptococcus pyogenes Sp (-) Mig (-) Li (+)" = (Streptococcus_pyogenes_expr_Mig_Sp_Li),
+             "Escherichia coli UPEC Sp (-) Mig (-)" = (Escherichia_coli_UPEC_expr_Mig_Sp_down),
+             "Shigella flexneri Sp (-) Mig (-)" = (Shigella_flexneri_expr_Mig_Sp_down)
              
              
       )
@@ -6925,6 +7269,101 @@ server <-function(input, output,session) {
       box_plot_SP()
     )
     
+    
+    ######test#########
+    
+    box_plot_SP_test <- reactive({
+      AcidStress <- datasetInputStimulonSp()
+      if (nrow(AcidStress) == 36 ) {
+        
+        generic_stress_sample_names=c("As_1","As_2","As_3","Bs_1","Bs_2","Bs_3","Ctrl_1","Ctrl_2","Ctrl_3","Li_1","Li_2","Li_3","Mig_1","Mig_2","Mig_3","Nd_1","Nd_2","Nd_3","Ns_1","Ns_2","Ns_3","Oss_1","Oss_2","Oss_3","Oxs_1","Oxs_2","Oxs_3","Sp_1","Sp_2","Sp_3","Tm_1","Tm_2","Tm_3","Vic_1","Vic_2","Vic_3")
+        #Vibrio_expr_1 = scale(Vibrio_expr[,colorh1==which.module ])
+        ME_lengthOfVector=rep(NA, ncol(AcidStress)*36)
+        Module_names <- rep(colnames(AcidStress),36)
+        lengthOfVector_col=ncol(AcidStress)
+        position_ME=1
+        for(i in 1:lengthOfVector_col) {
+          for(j in 1:36) {
+            ME_lengthOfVector[position_ME] <- AcidStress[j,i]
+            Module_names[position_ME] <-      colnames(AcidStress)[i]
+            position_ME = position_ME+1
+          }
+          position_ME = i*36+1
+        }
+        stress=rep(generic_stress_sample_names,ncol(AcidStress))
+        stress_1 <- gsub("_1","", stress)
+        stress_2 <- gsub("_2","", stress_1)
+        stress_3 <- gsub("_3","", stress_2)
+        stress=stress_3
+        
+        ME_Kruskall_dataset = as.data.frame(cbind(ME_lengthOfVector,stress, Module_names))
+        colnames(ME_Kruskall_dataset) <- c("MEigengene", "Stress", "Module_names")
+        #Plot <- ggplot(ME_Kruskall_dataset, aes(x=ME_Kruskall_dataset[,2], y=as.numeric(ME_Kruskall_dataset[,1]), fill = ME_Kruskall_dataset[,2])) +  labs(y="Standard deviation of gene expression", x = "Stress conditions")
+        #Plot + geom_violin( width=1, color="white" ) +geom_boxplot(width = .1, color= "black", alpha = .5) +scale_fill_brewer(palette = "Paired", aesthetics = "fill",guide = "none") +theme_classic(base_size = 16)
+        
+        return(pairwise.wilcox.test(as.numeric(ME_Kruskall_dataset[,1]),ME_Kruskall_dataset[,2],p.adjust.method = "BH"))
+        
+      } 
+      
+      else if (nrow(AcidStress) == 33 ) {
+        
+        generic_stress_sample_names=c("As_1","As_2","As_3","Ctrl_1","Ctrl_2","Ctrl_3","Li_1","Li_2","Li_3","Mig_1","Mig_2","Mig_3","Nd_1","Nd_2","Nd_3","Ns_1","Ns_2","Ns_3","Oss_1","Oss_2","Oss_3","Oxs_1","Oxs_2","Oxs_3","Sp_1","Sp_2","Sp_3","Tm_1","Tm_2","Tm_3","Vic_1","Vic_2","Vic_3")
+        #Vibrio_expr_1 = scale(Vibrio_expr[,colorh1==which.module ])
+        ME_lengthOfVector=rep(NA, ncol(AcidStress)*33)
+        Module_names <- rep(colnames(AcidStress),33)
+        lengthOfVector_col=ncol(AcidStress)
+        position_ME=1
+        for(i in 1:lengthOfVector_col) {
+          for(j in 1:33) {
+            ME_lengthOfVector[position_ME] <- AcidStress[j,i]
+            Module_names[position_ME] <-      colnames(AcidStress)[i]
+            position_ME = position_ME+1
+          }
+          position_ME = i*33+1
+        }
+        stress=rep(generic_stress_sample_names,ncol(AcidStress))
+        stress_1 <- gsub("_1","", stress)
+        stress_2 <- gsub("_2","", stress_1)
+        stress_3 <- gsub("_3","", stress_2)
+        stress=stress_3
+        
+        ME_Kruskall_dataset = as.data.frame(cbind(ME_lengthOfVector,stress, Module_names))
+        colnames(ME_Kruskall_dataset) <- c("MEigengene", "Stress", "Module_names")
+        #Plot <- ggplot(ME_Kruskall_dataset, aes(x=ME_Kruskall_dataset[,2], y=as.numeric(ME_Kruskall_dataset[,1]), fill = ME_Kruskall_dataset[,2])) +  labs(y="Standard deviation of gene expression", x = "Stress conditions")
+        #Plot + geom_violin( width=1, color="white") +geom_boxplot(width = .1, color= "black", alpha = .5) +scale_fill_brewer(palette = "Paired", aesthetics = "fill",guide = "none") +theme_classic(base_size = 16)
+        return(pairwise.wilcox.test(as.numeric(ME_Kruskall_dataset[,1]),ME_Kruskall_dataset[,2],p.adjust.method = "BH"))
+      } 
+      
+      
+      # boxplot(t(AcidStress))
+    })
+    
+    
+    
+    output$mytableSp2 <- renderTable({
+      test_result <- box_plot_SP_test()
+      
+      # Extract matrix of p-values from the test result
+      pvals_matrix <- test_result$p.value
+      
+      # Convert p-values to asterisks based on significance
+      pvals_matrix[pvals_matrix < 0.001] <- "***"
+      pvals_matrix[pvals_matrix >= 0.001 & pvals_matrix < 0.01] <- "**"
+      pvals_matrix[pvals_matrix >= 0.01 & pvals_matrix < 0.05] <- "*"
+      pvals_matrix[pvals_matrix >= 0.05] <- "ns"
+      
+      # Set the upper triangle values to ""
+      pvals_matrix[upper.tri(pvals_matrix, diag = FALSE)] <- ""
+      
+      # Convert the matrix to a data frame to have row names as an explicit column
+      df <- data.frame(Group = rownames(pvals_matrix), pvals_matrix)
+      
+      df
+      
+    })
+    
+    #####testfinnish#####
+    
     datSp <- reactive({
       dataset_As <- datasetInputStimulonSp()
       
@@ -6959,7 +7398,20 @@ server <-function(input, output,session) {
     
     output$mytableSp <- DT::renderDataTable({datSp()
       
-      return(datatable(datSp(), extensions = 'Buttons',options = list(paging=TRUE, lengthMenu=c(50,100,150), scrollX = FALSE,lengthChange = T, regex= FALSE, searching = TRUE,initComplete = JS(js),dom = 'Bfrtip',buttons = c('copy', 'csv', 'excel')),rownames=FALSE, class = "display") %>% formatStyle(names(datSp()[-1:-3]), backgroundColor = styleInterval(brks, clrs)))
+      return(datatable(datSp(), extensions = 'Buttons',options = list(paging=FALSE, lengthMenu=c(50,100,150), scrollX = FALSE,lengthChange = T, regex= FALSE, searching = TRUE,initComplete = JS(js),dom = 'Bfrtip',buttons = list(
+        list(
+          extend = "copy",
+          filename = "dataset_copy"
+        ),
+        list(
+          extend = "csv",
+          filename = "dataset_csv"
+        ),
+        list(
+          extend = "excel",
+          filename = "dataset_excel"
+        )
+      )),rownames=FALSE, class = "display") %>% formatStyle(names(datSp()[-1:-3]), backgroundColor = styleInterval(brks, clrs)))
       #options = list(paging=FALSE, scrollX = FALSE), 
       #rownames=TRUE, 
       #filter = "top"
@@ -6969,30 +7421,30 @@ server <-function(input, output,session) {
     ############Bs_stimulon#############
     datasetInputStimulonBs <- reactive({
       switch(input$select_bs,
-             "Escherichia coli EPEC Bs (+)"=(Escherichia_coli_EPEC_0127_H6_E2348_69_expr_Bs),
-             "Escherichia coli ETEC Bs (+)"=(Escherichia_coli_ETEC_H10407_expr_Bs),
-             "Klebsiella pneumoniae Bs (+) Sp (-)"=(Klebsiella_pneumoniae_expr_Bs_Sp),
-             "Klebsiella pneumoniae Bs (+)"=(Klebsiella_pneumoniae_expr_Bs),
-             "Salmonella enterica Bs (+)"=(Salmonella_enterica_expr_Bs),
-             "Escherichia coli UPEC Bs (+)"=(Escherichia_coli_UPEC_expr_Bs),
-             "Francisella tularensis Bs (+)"=(Francisella_tularensis_expr_Bs),
-             "Enterococcus faecalis Bs (+)"= (Enterococcus_faecalis_expr_Bs),
-             "Listeria monocytogenes Bs (+) (I) "=(Listeria_expr_Bs1),
-             "Listeria monocytogenes Bs (+) (II)"=(Listeria_expr_Bs2),
-             "Staphylococcus aureus MRSA252 Bs (+)"=(Staphylococcus_aureus_MRSA252_expr_Bs),
-             "Neisseria gonorrhoeae Bs (+) (I)"=(Neisseria_gonorrhoeae_expr_Bs1),
-             "Neisseria gonorrhoeae Bs (+) (II)"=(Neisseria_gonorrhoeae_expr_Bs2),
-             "Pseudomonas aeruginosa Bs (+)"=(Pseudomonas_aeruginosa_expr_Bs),
-             "Staphylococcus epidermidis Bs (+)"=(Staphylococcus_epidermidis_expr_Bs),
-             "Achromobacter xylosoxidans Bs (+)"=(Achromobacter_xylosoxidans_expr_Bs),
-             "Aggregatibacter actinomycetemcomitans Bs (+) (I)"=(Aggregatibacter_actinomycetemcomitans_expr_Bs1),
-             "Aggregatibacter actinomycetemcomitans Bs (+) (II)"=(Aggregatibacter_actinomycetemcomitans_expr_Bs2),
-             "Aggregatibacter actinomycetemcomitans Bs (+) (III)"=(Aggregatibacter_actinomycetemcomitans_expr_Bs3),
-             "Aggregatibacter actinomycetemcomitans Bs (+) (IV)"=(Aggregatibacter_actinomycetemcomitans_expr_Bs4),
-             "Campylobacter jejuni Bs (+)"=(Campylobacter_jejuni_expr_Bs),
-             "Streptococcus pneumoniae Bs (+) Mig (-)"=(Streptococcus_pneumoniae_expr_Bs_Mig),
-             "Vibrio cholerae Bs (+)"=(Vibrio_cholerae_expr_Bs),
-             "Neisseria meningitidis Bs (+)"=(Neisseria_meningitidis_expr_Bs)
+             "Escherichia coli EPEC Bs (+)" = (Escherichia_coli_EPEC_0127_H6_E2348_69_expr_Bs),
+             "Escherichia coli ETEC Bs (+)" = (Escherichia_coli_ETEC_H10407_expr_Bs),
+             "Klebsiella pneumoniae Bs (+) Sp (-)" = (Klebsiella_pneumoniae_expr_Bs_Sp),
+             "Klebsiella pneumoniae Bs (+)" = (Klebsiella_pneumoniae_expr_Bs),
+             "Salmonella enterica Bs (+)" = (Salmonella_enterica_expr_Bs),
+             "Escherichia coli UPEC Bs (+)" = (Escherichia_coli_UPEC_expr_Bs),
+             "Francisella tularensis Bs (+)" = (Francisella_tularensis_expr_Bs),
+             "Enterococcus faecalis Bs (+)" = (Enterococcus_faecalis_expr_Bs),
+             "Listeria monocytogenes Bs (+) (I) " = (Listeria_expr_Bs1),
+             "Listeria monocytogenes Bs (+) (II)" = (Listeria_expr_Bs2),
+             "Staphylococcus aureus MRSA252 Bs (+)" = (Staphylococcus_aureus_MRSA252_expr_Bs),
+             "Neisseria gonorrhoeae Bs (+) (I)" = (Neisseria_gonorrhoeae_expr_Bs1),
+             "Neisseria gonorrhoeae Bs (+) (II)" = (Neisseria_gonorrhoeae_expr_Bs2),
+             "Pseudomonas aeruginosa Bs (+)" = (Pseudomonas_aeruginosa_expr_Bs),
+             "Staphylococcus epidermidis Bs (+)" = (Staphylococcus_epidermidis_expr_Bs),
+             "Achromobacter xylosoxidans Bs (+)" = (Achromobacter_xylosoxidans_expr_Bs),
+             "Aggregatibacter actinomycetemcomitans Bs (+) (I)" = (Aggregatibacter_actinomycetemcomitans_expr_Bs1),
+             "Aggregatibacter actinomycetemcomitans Bs (+) (II)" = (Aggregatibacter_actinomycetemcomitans_expr_Bs2),
+             "Aggregatibacter actinomycetemcomitans Bs (+) (III)" = (Aggregatibacter_actinomycetemcomitans_expr_Bs3),
+             "Aggregatibacter actinomycetemcomitans Bs (+) (IV)" = (Aggregatibacter_actinomycetemcomitans_expr_Bs4),
+             "Campylobacter jejuni Bs (+)" = (Campylobacter_jejuni_expr_Bs),
+             "Streptococcus pneumoniae Bs (+) Mig (-)" = (Streptococcus_pneumoniae_expr_Bs_Mig),
+             "Vibrio cholerae Bs (+)" = (Vibrio_cholerae_expr_Bs),
+             "Neisseria meningitidis Bs (+)" = (Neisseria_meningitidis_expr_Bs)
              
              
       )
@@ -7092,6 +7544,99 @@ server <-function(input, output,session) {
       box_plot_Bs()
     )
     
+ #####test#####   
+    box_plot_BS_test <- reactive({
+      AcidStress <- datasetInputStimulonBs()
+      if (nrow(AcidStress) == 36 ) {
+        
+        generic_stress_sample_names=c("As_1","As_2","As_3","Bs_1","Bs_2","Bs_3","Ctrl_1","Ctrl_2","Ctrl_3","Li_1","Li_2","Li_3","Mig_1","Mig_2","Mig_3","Nd_1","Nd_2","Nd_3","Ns_1","Ns_2","Ns_3","Oss_1","Oss_2","Oss_3","Oxs_1","Oxs_2","Oxs_3","Sp_1","Sp_2","Sp_3","Tm_1","Tm_2","Tm_3","Vic_1","Vic_2","Vic_3")
+        #Vibrio_expr_1 = scale(Vibrio_expr[,colorh1==which.module ])
+        ME_lengthOfVector=rep(NA, ncol(AcidStress)*36)
+        Module_names <- rep(colnames(AcidStress),36)
+        lengthOfVector_col=ncol(AcidStress)
+        position_ME=1
+        for(i in 1:lengthOfVector_col) {
+          for(j in 1:36) {
+            ME_lengthOfVector[position_ME] <- AcidStress[j,i]
+            Module_names[position_ME] <-      colnames(AcidStress)[i]
+            position_ME = position_ME+1
+          }
+          position_ME = i*36+1
+        }
+        stress=rep(generic_stress_sample_names,ncol(AcidStress))
+        stress_1 <- gsub("_1","", stress)
+        stress_2 <- gsub("_2","", stress_1)
+        stress_3 <- gsub("_3","", stress_2)
+        stress=stress_3
+        
+        ME_Kruskall_dataset = as.data.frame(cbind(ME_lengthOfVector,stress, Module_names))
+        colnames(ME_Kruskall_dataset) <- c("MEigengene", "Stress", "Module_names")
+        #Plot <- ggplot(ME_Kruskall_dataset, aes(x=ME_Kruskall_dataset[,2], y=as.numeric(ME_Kruskall_dataset[,1]), fill = ME_Kruskall_dataset[,2])) +  labs(y="Standard deviation of gene expression", x = "Stress conditions")
+        #Plot + geom_violin( width=1, color="white" ) +geom_boxplot(width = .1, color= "black", alpha = .5) +scale_fill_brewer(palette = "Paired", aesthetics = "fill",guide = "none") +theme_classic(base_size = 16)
+        
+        return(pairwise.wilcox.test(as.numeric(ME_Kruskall_dataset[,1]),ME_Kruskall_dataset[,2],p.adjust.method = "BH"))
+        
+      } 
+      
+      else if (nrow(AcidStress) == 33 ) {
+        
+        generic_stress_sample_names=c("As_1","As_2","As_3","Ctrl_1","Ctrl_2","Ctrl_3","Li_1","Li_2","Li_3","Mig_1","Mig_2","Mig_3","Nd_1","Nd_2","Nd_3","Ns_1","Ns_2","Ns_3","Oss_1","Oss_2","Oss_3","Oxs_1","Oxs_2","Oxs_3","Sp_1","Sp_2","Sp_3","Tm_1","Tm_2","Tm_3","Vic_1","Vic_2","Vic_3")
+        #Vibrio_expr_1 = scale(Vibrio_expr[,colorh1==which.module ])
+        ME_lengthOfVector=rep(NA, ncol(AcidStress)*33)
+        Module_names <- rep(colnames(AcidStress),33)
+        lengthOfVector_col=ncol(AcidStress)
+        position_ME=1
+        for(i in 1:lengthOfVector_col) {
+          for(j in 1:33) {
+            ME_lengthOfVector[position_ME] <- AcidStress[j,i]
+            Module_names[position_ME] <-      colnames(AcidStress)[i]
+            position_ME = position_ME+1
+          }
+          position_ME = i*33+1
+        }
+        stress=rep(generic_stress_sample_names,ncol(AcidStress))
+        stress_1 <- gsub("_1","", stress)
+        stress_2 <- gsub("_2","", stress_1)
+        stress_3 <- gsub("_3","", stress_2)
+        stress=stress_3
+        
+        ME_Kruskall_dataset = as.data.frame(cbind(ME_lengthOfVector,stress, Module_names))
+        colnames(ME_Kruskall_dataset) <- c("MEigengene", "Stress", "Module_names")
+        #Plot <- ggplot(ME_Kruskall_dataset, aes(x=ME_Kruskall_dataset[,2], y=as.numeric(ME_Kruskall_dataset[,1]), fill = ME_Kruskall_dataset[,2])) +  labs(y="Standard deviation of gene expression", x = "Stress conditions")
+        #Plot + geom_violin( width=1, color="white") +geom_boxplot(width = .1, color= "black", alpha = .5) +scale_fill_brewer(palette = "Paired", aesthetics = "fill",guide = "none") +theme_classic(base_size = 16)
+        return(pairwise.wilcox.test(as.numeric(ME_Kruskall_dataset[,1]),ME_Kruskall_dataset[,2],p.adjust.method = "BH"))
+      } 
+      
+      
+      # boxplot(t(AcidStress))
+    })
+    
+    
+    
+    output$mytableBs2 <- renderTable({
+      test_result <- box_plot_BS_test()
+      
+      # Extract matrix of p-values from the test result
+      pvals_matrix <- test_result$p.value
+      
+      # Convert p-values to asterisks based on significance
+      pvals_matrix[pvals_matrix < 0.001] <- "***"
+      pvals_matrix[pvals_matrix >= 0.001 & pvals_matrix < 0.01] <- "**"
+      pvals_matrix[pvals_matrix >= 0.01 & pvals_matrix < 0.05] <- "*"
+      pvals_matrix[pvals_matrix >= 0.05] <- "ns"
+      
+      # Set the upper triangle values to ""
+      pvals_matrix[upper.tri(pvals_matrix, diag = FALSE)] <- ""
+      
+      # Convert the matrix to a data frame to have row names as an explicit column
+      df <- data.frame(Group = rownames(pvals_matrix), pvals_matrix)
+      
+      df
+      
+    })
+    
+   ########finnishtest##### 
+    
     datBs <- reactive({
       dataset_As <- datasetInputStimulonBs()
       
@@ -7126,7 +7671,20 @@ server <-function(input, output,session) {
     
     output$mytableBs <- DT::renderDataTable({datBs()
       
-      return(datatable(datBs(), extensions = 'Buttons',options = list(paging=TRUE, lengthMenu=c(50,100,150), scrollX = FALSE,lengthChange = T, regex= FALSE, searching = TRUE,initComplete = JS(js),dom = 'Bfrtip',buttons = c('copy', 'csv', 'excel')),rownames=FALSE, class = "display") %>% formatStyle(names(datBs()[-1:-3]), backgroundColor = styleInterval(brks, clrs)))
+      return(datatable(datBs(), extensions = 'Buttons',options = list(paging=FALSE, lengthMenu=c(50,100,150), scrollX = FALSE,lengthChange = T, regex= FALSE, searching = TRUE,initComplete = JS(js),dom = 'Bfrtip',buttons = list(
+        list(
+          extend = "copy",
+          filename = "dataset_copy"
+        ),
+        list(
+          extend = "csv",
+          filename = "dataset_csv"
+        ),
+        list(
+          extend = "excel",
+          filename = "dataset_excel"
+        )
+      )),rownames=FALSE, class = "display") %>% formatStyle(names(datBs()[-1:-3]), backgroundColor = styleInterval(brks, clrs)))
       #options = list(paging=FALSE, scrollX = FALSE), 
       #rownames=TRUE, 
       #filter = "top"
@@ -7137,84 +7695,84 @@ server <-function(input, output,session) {
     ############Nd_stimulon#############
     datasetInputStimulonNd <- reactive({
       switch(input$select_nd,
-             "Enterococcus faecalis Nd (-)" =(Enterococcus_faecalis_expr_Nd),
+             "Enterococcus faecalis Nd (-)" = (Enterococcus_faecalis_expr_Nd),
              "Francisella tularensis Nd (-) (I)" = (Francisella_tularensis_expr_Nd),
              "Staphylococcus aureus MSSA476 Nd (-) Mig (-)" = (Staphylococcus_aureus_MSSA476_expr_Nd_Mig),
              "Staphylococcus aureus MRSA252 Nd (-) Mig (-)" = (Staphylococcus_aureus_MRSA252_expr_Nd_Mig),
              "Streptococcus agalactiae Nd (-) (I)" = (Streptococcus_agalactiae_expr_Nd),
              "Helicobacter pylori G27 Nd (-) (I)" = (Helicobacter_pylori_G27_expr_Nd),
-             "Helicobacter pylori G27 Nd (-) (II)"=(Helicobacter_pylori_G27_expr_Nd2_down),
+             "Helicobacter pylori G27 Nd (-) (II)" = (Helicobacter_pylori_G27_expr_Nd2_down),
              "Helicobacter pylori J99 Nd (-)" = (Helicobacter_pylori_J99_expr_Nd),
-             "Achromobacter xylosoxidans Nd (+)"=(Achromobacter_xylosoxidans_expr_Nd_up),
-             "Acinetobacter baumannii Nd (+)"=(Acinetobacter_baumannii_expr_Nd_up),
-             "Aggregatibacter actinomycetemcomitans Nd (+) (I)"=(Aggregatibacter_actinomycetemcomitans_expr_Nd_up),
-             "Aggregatibacter actinomycetemcomitans Nd (+) (II)"=(Aggregatibacter_actinomycetemcomitans_expr_Nd2_up),
-             "Borrelia burgdorferi Nd (+)"=(Borrelia_burgdorferi_expr_Nd_up),
-             "Burkholderia pseudomallei Nd (+) (I)"=(Burkholderia_pseudomallei_expr_Nd1_up),
-             "Burkholderia pseudomallei Nd (+) (II)"=(Burkholderia_pseudomallei_expr_Nd2_up),
-             "Burkholderia pseudomallei Nd (+) (III)"=(Burkholderia_pseudomallei_expr_Nd3_up),
-             "Campylobacter jejuni Nd (+)"=(Campylobacter_jejuni_expr_Nd_up),
-             "Enterococcus faecalis Nd (+) (I)"=(Enterococcus_faecalis_expr_Nd1_up),
-             "Enterococcus faecalis Nd (+) (II)"=(Enterococcus_faecalis_expr_Nd2_up),
-             "Escherichia coli EPEC Nd (+) Oss (+)"=(Escherichia_coli_EPEC_expr_Nd_up_Oss_up),
-             "Escherichia coli EPEC Nd (+)"=(Escherichia_coli_EPEC_expr_Nd_up),
-             "Escherichia coli ETEC Nd (+) (I)"=(Escherichia_coli_ETEC_expr_Nd1_up),
-             "Escherichia coli ETEC Nd (+) (II)"=(Escherichia_coli_ETEC_expr_Nd2_up),
-             "Escherichia coli ETEC Nd (+) Mig (+)"=(Escherichia_coli_ETEC_expr_Nd_up_Mig_up),
-             "Francisella tularensis Nd (+) (I)"=(Francisella_tularensis_expr_Nd1_up),
-             "Francisella tularensis Nd (+) (II)"=(Francisella_tularensis_expr_Nd2_up),
-             "Haemophilus influenzae Nd (+)"=(Haemophilus_influenzae_expr_Nd_up),
-             "Helicobacter pylori G27 Nd (+)"=(Helicobacter_pylori_G27_expr_Nd_up),
-             "Helicobacter pylori J99 Nd (+) (I)"=(Helicobacter_pylori_J99_expr_Nd_up),
-             "Klebsiella pneumoniae Nd (+) (I)"=(Klebsiella_pneumoniae_expr_Nd_up),
-             "Klebsiella pneumoniae Nd (+) (II)"=(Klebsiella_pneumoniae_expr_Nd2_up),
-             "Listeria monocytogenes Nd (+) (I)"=(Listeria_monocytogenes_expr_Nd1_up),
-             "Listeria monocytogenes Nd (+) (II)"=(Listeria_monocytogenes_expr_Nd2_up),
-             "Listeria monocytogenes Nd (+) (III)"=(Listeria_monocytogenes_expr_Nd3_up),
-             "Staphylococcus aureus MRSA252 Nd (+) Ns (-)"=(Staphylococcus_aureus_MRSA252_expr_Nd_up_Ns_down),
-             "Staphylococcus aureus MRSA252 Nd (+)"=(Staphylococcus_aureus_MRSA252_expr_Nd_up),
-             "Staphylococcus aureus MSSA476 Nd (+)"=(Staphylococcus_aureus_MSSA476_expr_Nd_up),
-             "Neisseria meningitidis Nd (+)"=(Neisseria_meningitidis_expr_Nd_up),
-             "Pseudomonas aeruginosa Nd (+) Ns (+)"=(Pseudomonas_aeruginosa_expr_Nd_up_Ns_up),
-             "Pseudomonas aeruginosa Nd (+) Oss (+)"=(Pseudomonas_aeruginosa_expr_Nd_up_Oss_up),
-             "Pseudomonas aeruginosa Nd (+)"=(Pseudomonas_aeruginosa_expr_Nd_up),
-             "Salmonella enterica Nd (+)"=(Salmonella_enterica_expr_Nd_up),
-             "Staphylococcus epidermidis Nd (+) (I)"=(Staphylococcus_epidermidis_expr_Nd1_up),
-             "Staphylococcus epidermidis Nd (+) (II)"=(Staphylococcus_epidermidis_expr_Nd2_up),
-             "Staphylococcus epidermidis Nd (+) Tm (-)"=(Staphylococcus_epidermidis_expr_Nd_up_Tm_down),
-             "Shigella flexneri Nd (+)"=(Shigella_flexneri_expr_Nd_up),
-             "Streptococcus pyogenes Nd (+)"=(Streptococcus_pyogenes_expr_Nd_up),
-             "Streptococcus agalactiae Nd (+)"=(Streptococcus_agalactiae_expr_Nd_up),
-             "Escherichia coli UPEC Nd (+) (I)"=(Escherichia_coli_UPEC_expr_Nd1_up),
-             "Escherichia coli UPEC Nd (+) (II)"=(Escherichia_coli_UPEC_expr_Nd2_up),
-             "Vibrio cholerae Nd (+)"=(Vibrio_cholerae_expr_Nd_up),
-             "Yersinia pseudotuberculosis Nd (+)"=(Yersinia_pseudotuberculosis_expr_Nd_up),
-             "Yersinia pseudotuberculosis Nd (+) Vic (-)"=(Yersinia_pseudotuberculosis_expr_Nd_up_Vic_down),
-             "Enterococcus faecalis Nd (+) Oxs (+) Vic(-)"=(Enterococcus_faecalis_expr_Nd_up_Oxs_up_Vic_down),
-             "Klebsiella pneumoniae Nd (+) Oxs (+)"=(Klebsiella_pneumoniae_expr_Nd_up_Oxs_up),
-             "Salmonella enterica Nd (+) Oxs (+)"=(Salmonella_enterica_expr_Nd_up_Oxs_up),
-             "Shigella flexneri Nd (+) Oxs (+)"=(Shigella_flexneri_expr_Nd_up_Oxs_up),
-             "Staphylococcus aureus MSSA476 Nd (+) Sp (+)"=(Staphylococcus_aureus_MSSA476_expr_Sp_up_Nd_up),
-             "Pseudomonas aeruginosa Nd (+) Sp (+)"=(Pseudomonas_aeruginosa_expr_Sp_up_Nd_up),
-             "Listeria monocytogenes  Nd (-) Li (+)"=(Listeria_monocytogenes_expr_Li_up_Nd_down),
-             "Vibrio cholerae Nd (+) Mig (+) "=(Vibrio_cholerae_expr_Mig_up_Nd_up),
-             "Aggregatibacter actinomycetemcomitans  Nd (-) Mig (+)"=(Aggregatibacter_actinomycetemcomitans_expr_Mig_up_Nd_down),
-             "Staphylococcus aureus MRSA252 Nd (+) Mig (+) "=(Staphylococcus_aureus_MRSA252_expr_Mig_up_Nd_up),
-             "Streptococcus agalactiae Nd (-) Mig (+) "=(Streptococcus_agalactiae_expr_Mig_up_Nd_down),
-             "Listeria monocytogenes Nd (-) Oss (+) "=(Listeria_monocytogenes_expr_Oss_up_Nd_down),
-             "Streptococcus agalactiae Nd (-) Oss (+) "=(Streptococcus_agalactiae_expr_Oss_up_Nd_down),
-             "Streptococcus pyogenes Nd (+) Tm (+) "=(Streptococcus_pyogenes_expr_Tm_up_Nd_up),
-             "Streptococcus agalactiae Nd (-) Tm (+) "=(Streptococcus_agalactiae_expr_Tm_up_Nd_down),
-             "Streptococcus agalactiae Nd (-) Vic (+) "=(Streptococcus_agalactiae_expr_Vic_up_Nd_down),
-             "Streptococcus agalactiae Nd (-) (II)"=(Streptococcus_agalactiae_expr_Nd2_down),
-             "Listeria monocytogenes Nd (-) (I)"=(Listeria_monocytogenes_expr_Nd1_down),
+             "Achromobacter xylosoxidans Nd (+)" = (Achromobacter_xylosoxidans_expr_Nd_up),
+             "Acinetobacter baumannii Nd (+)" = (Acinetobacter_baumannii_expr_Nd_up),
+             "Aggregatibacter actinomycetemcomitans Nd (+) (I)" = (Aggregatibacter_actinomycetemcomitans_expr_Nd_up),
+             "Aggregatibacter actinomycetemcomitans Nd (+) (II)" = (Aggregatibacter_actinomycetemcomitans_expr_Nd2_up),
+             "Borrelia burgdorferi Nd (+)" = (Borrelia_burgdorferi_expr_Nd_up),
+             "Burkholderia pseudomallei Nd (+) (I)" = (Burkholderia_pseudomallei_expr_Nd1_up),
+             "Burkholderia pseudomallei Nd (+) (II)" = (Burkholderia_pseudomallei_expr_Nd2_up),
+             "Burkholderia pseudomallei Nd (+) (III)" = (Burkholderia_pseudomallei_expr_Nd3_up),
+             "Campylobacter jejuni Nd (+)" = (Campylobacter_jejuni_expr_Nd_up),
+             "Enterococcus faecalis Nd (+) (I)" = (Enterococcus_faecalis_expr_Nd1_up),
+             "Enterococcus faecalis Nd (+) (II)" = (Enterococcus_faecalis_expr_Nd2_up),
+             "Escherichia coli EPEC Nd (+) Oss (+)" = (Escherichia_coli_EPEC_expr_Nd_up_Oss_up),
+             "Escherichia coli EPEC Nd (+)" = (Escherichia_coli_EPEC_expr_Nd_up),
+             "Escherichia coli ETEC Nd (+) (I)" = (Escherichia_coli_ETEC_expr_Nd1_up),
+             "Escherichia coli ETEC Nd (+) (II)" = (Escherichia_coli_ETEC_expr_Nd2_up),
+             "Escherichia coli ETEC Nd (+) Mig (+)" = (Escherichia_coli_ETEC_expr_Nd_up_Mig_up),
+             "Francisella tularensis Nd (+) (I)" = (Francisella_tularensis_expr_Nd1_up),
+             "Francisella tularensis Nd (+) (II)" = (Francisella_tularensis_expr_Nd2_up),
+             "Haemophilus influenzae Nd (+)" = (Haemophilus_influenzae_expr_Nd_up),
+             "Helicobacter pylori G27 Nd (+)" = (Helicobacter_pylori_G27_expr_Nd_up),
+             "Helicobacter pylori J99 Nd (+) (I)" = (Helicobacter_pylori_J99_expr_Nd_up),
+             "Klebsiella pneumoniae Nd (+) (I)" = (Klebsiella_pneumoniae_expr_Nd_up),
+             "Klebsiella pneumoniae Nd (+) (II)" = (Klebsiella_pneumoniae_expr_Nd2_up),
+             "Listeria monocytogenes Nd (+) (I)" = (Listeria_monocytogenes_expr_Nd1_up),
+             "Listeria monocytogenes Nd (+) (II)" = (Listeria_monocytogenes_expr_Nd2_up),
+             "Listeria monocytogenes Nd (+) (III)" = (Listeria_monocytogenes_expr_Nd3_up),
+             "Staphylococcus aureus MRSA252 Nd (+) Ns (-)" = (Staphylococcus_aureus_MRSA252_expr_Nd_up_Ns_down),
+             "Staphylococcus aureus MRSA252 Nd (+)" = (Staphylococcus_aureus_MRSA252_expr_Nd_up),
+             "Staphylococcus aureus MSSA476 Nd (+)" = (Staphylococcus_aureus_MSSA476_expr_Nd_up),
+             "Neisseria meningitidis Nd (+)" = (Neisseria_meningitidis_expr_Nd_up),
+             "Pseudomonas aeruginosa Nd (+) Ns (+)" = (Pseudomonas_aeruginosa_expr_Nd_up_Ns_up),
+             "Pseudomonas aeruginosa Nd (+) Oss (+)" = (Pseudomonas_aeruginosa_expr_Nd_up_Oss_up),
+             "Pseudomonas aeruginosa Nd (+)" = (Pseudomonas_aeruginosa_expr_Nd_up),
+             "Salmonella enterica Nd (+)" = (Salmonella_enterica_expr_Nd_up),
+             "Staphylococcus epidermidis Nd (+) (I)" = (Staphylococcus_epidermidis_expr_Nd1_up),
+             "Staphylococcus epidermidis Nd (+) (II)" = (Staphylococcus_epidermidis_expr_Nd2_up),
+             "Staphylococcus epidermidis Nd (+) Tm (-)" = (Staphylococcus_epidermidis_expr_Nd_up_Tm_down),
+             "Shigella flexneri Nd (+)" = (Shigella_flexneri_expr_Nd_up),
+             "Streptococcus pyogenes Nd (+)" = (Streptococcus_pyogenes_expr_Nd_up),
+             "Streptococcus agalactiae Nd (+)" = (Streptococcus_agalactiae_expr_Nd_up),
+             "Escherichia coli UPEC Nd (+) (I)" = (Escherichia_coli_UPEC_expr_Nd1_up),
+             "Escherichia coli UPEC Nd (+) (II)" = (Escherichia_coli_UPEC_expr_Nd2_up),
+             "Vibrio cholerae Nd (+)" = (Vibrio_cholerae_expr_Nd_up),
+             "Yersinia pseudotuberculosis Nd (+)" = (Yersinia_pseudotuberculosis_expr_Nd_up),
+             "Yersinia pseudotuberculosis Nd (+) Vic (-)" = (Yersinia_pseudotuberculosis_expr_Nd_up_Vic_down),
+             "Enterococcus faecalis Nd (+) Oxs (+) Vic(-)" = (Enterococcus_faecalis_expr_Nd_up_Oxs_up_Vic_down),
+             "Klebsiella pneumoniae Nd (+) Oxs (+)" = (Klebsiella_pneumoniae_expr_Nd_up_Oxs_up),
+             "Salmonella enterica Nd (+) Oxs (+)" = (Salmonella_enterica_expr_Nd_up_Oxs_up),
+             "Shigella flexneri Nd (+) Oxs (+)" = (Shigella_flexneri_expr_Nd_up_Oxs_up),
+             "Staphylococcus aureus MSSA476 Nd (+) Sp (+)" = (Staphylococcus_aureus_MSSA476_expr_Sp_up_Nd_up),
+             "Pseudomonas aeruginosa Nd (+) Sp (+)" = (Pseudomonas_aeruginosa_expr_Sp_up_Nd_up),
+             "Listeria monocytogenes  Nd (-) Li (+)" = (Listeria_monocytogenes_expr_Li_up_Nd_down),
+             "Vibrio cholerae Nd (+) Mig (+) " = (Vibrio_cholerae_expr_Mig_up_Nd_up),
+             "Aggregatibacter actinomycetemcomitans  Nd (-) Mig (+)" = (Aggregatibacter_actinomycetemcomitans_expr_Mig_up_Nd_down),
+             "Staphylococcus aureus MRSA252 Nd (+) Mig (+) " = (Staphylococcus_aureus_MRSA252_expr_Mig_up_Nd_up),
+             "Streptococcus agalactiae Nd (-) Mig (+) " = (Streptococcus_agalactiae_expr_Mig_up_Nd_down),
+             "Listeria monocytogenes Nd (-) Oss (+) " = (Listeria_monocytogenes_expr_Oss_up_Nd_down),
+             "Streptococcus agalactiae Nd (-) Oss (+) " = (Streptococcus_agalactiae_expr_Oss_up_Nd_down),
+             "Streptococcus pyogenes Nd (+) Tm (+) " = (Streptococcus_pyogenes_expr_Tm_up_Nd_up),
+             "Streptococcus agalactiae Nd (-) Tm (+) " = (Streptococcus_agalactiae_expr_Tm_up_Nd_down),
+             "Streptococcus agalactiae Nd (-) Vic (+) " = (Streptococcus_agalactiae_expr_Vic_up_Nd_down),
+             "Streptococcus agalactiae Nd (-) (II)" = (Streptococcus_agalactiae_expr_Nd2_down),
+             "Listeria monocytogenes Nd (-) (I)" = (Listeria_monocytogenes_expr_Nd1_down),
              
-             "Listeria monocytogenes Nd (-) (II)"=(Listeria_monocytogenes_expr_Nd2_down),
-             "Francisella tularensis Nd (-) (II)"=(Francisella_tularensis_expr_Nd2_down),
-             "Listeria monocytogenes Nd (-) As (+)"=(Listeria_monocytogenes_expr_As_up_Nd_down),
-             "Listeria monocytogenes Nd (-) (III)"=(Listeria_monocytogenes_expr_Nd3_down),
-             "Escherichia coli UPEC Nd (+) (III)"=(Escherichia_coli_UPEC_expr_Nd3_up),
-             "Helicobacter pylori J99 Nd (+) (II)"=(Helicobacter_pylori_J99_expr_Nd2_up)
+             "Listeria monocytogenes Nd (-) (II)" = (Listeria_monocytogenes_expr_Nd2_down),
+             "Francisella tularensis Nd (-) (II)" = (Francisella_tularensis_expr_Nd2_down),
+             "Listeria monocytogenes Nd (-) As (+)" = (Listeria_monocytogenes_expr_As_up_Nd_down),
+             "Listeria monocytogenes Nd (-) (III)" = (Listeria_monocytogenes_expr_Nd3_down),
+             "Escherichia coli UPEC Nd (+) (III)" = (Escherichia_coli_UPEC_expr_Nd3_up),
+             "Helicobacter pylori J99 Nd (+) (II)" = (Helicobacter_pylori_J99_expr_Nd2_up)
              
              
              
@@ -7315,6 +7873,101 @@ server <-function(input, output,session) {
       box_plot_Nd()
     )
     
+    #####test#####
+    
+    
+    box_plot_ND_test <- reactive({
+      AcidStress <- datasetInputStimulonNd()
+      if (nrow(AcidStress) == 36 ) {
+        
+        generic_stress_sample_names=c("As_1","As_2","As_3","Bs_1","Bs_2","Bs_3","Ctrl_1","Ctrl_2","Ctrl_3","Li_1","Li_2","Li_3","Mig_1","Mig_2","Mig_3","Nd_1","Nd_2","Nd_3","Ns_1","Ns_2","Ns_3","Oss_1","Oss_2","Oss_3","Oxs_1","Oxs_2","Oxs_3","Sp_1","Sp_2","Sp_3","Tm_1","Tm_2","Tm_3","Vic_1","Vic_2","Vic_3")
+        #Vibrio_expr_1 = scale(Vibrio_expr[,colorh1==which.module ])
+        ME_lengthOfVector=rep(NA, ncol(AcidStress)*36)
+        Module_names <- rep(colnames(AcidStress),36)
+        lengthOfVector_col=ncol(AcidStress)
+        position_ME=1
+        for(i in 1:lengthOfVector_col) {
+          for(j in 1:36) {
+            ME_lengthOfVector[position_ME] <- AcidStress[j,i]
+            Module_names[position_ME] <-      colnames(AcidStress)[i]
+            position_ME = position_ME+1
+          }
+          position_ME = i*36+1
+        }
+        stress=rep(generic_stress_sample_names,ncol(AcidStress))
+        stress_1 <- gsub("_1","", stress)
+        stress_2 <- gsub("_2","", stress_1)
+        stress_3 <- gsub("_3","", stress_2)
+        stress=stress_3
+        
+        ME_Kruskall_dataset = as.data.frame(cbind(ME_lengthOfVector,stress, Module_names))
+        colnames(ME_Kruskall_dataset) <- c("MEigengene", "Stress", "Module_names")
+        #Plot <- ggplot(ME_Kruskall_dataset, aes(x=ME_Kruskall_dataset[,2], y=as.numeric(ME_Kruskall_dataset[,1]), fill = ME_Kruskall_dataset[,2])) +  labs(y="Standard deviation of gene expression", x = "Stress conditions")
+        #Plot + geom_violin( width=1, color="white" ) +geom_boxplot(width = .1, color= "black", alpha = .5) +scale_fill_brewer(palette = "Paired", aesthetics = "fill",guide = "none") +theme_classic(base_size = 16)
+        
+        return(pairwise.wilcox.test(as.numeric(ME_Kruskall_dataset[,1]),ME_Kruskall_dataset[,2],p.adjust.method = "BH"))
+        
+      } 
+      
+      else if (nrow(AcidStress) == 33 ) {
+        
+        generic_stress_sample_names=c("As_1","As_2","As_3","Ctrl_1","Ctrl_2","Ctrl_3","Li_1","Li_2","Li_3","Mig_1","Mig_2","Mig_3","Nd_1","Nd_2","Nd_3","Ns_1","Ns_2","Ns_3","Oss_1","Oss_2","Oss_3","Oxs_1","Oxs_2","Oxs_3","Sp_1","Sp_2","Sp_3","Tm_1","Tm_2","Tm_3","Vic_1","Vic_2","Vic_3")
+        #Vibrio_expr_1 = scale(Vibrio_expr[,colorh1==which.module ])
+        ME_lengthOfVector=rep(NA, ncol(AcidStress)*33)
+        Module_names <- rep(colnames(AcidStress),33)
+        lengthOfVector_col=ncol(AcidStress)
+        position_ME=1
+        for(i in 1:lengthOfVector_col) {
+          for(j in 1:33) {
+            ME_lengthOfVector[position_ME] <- AcidStress[j,i]
+            Module_names[position_ME] <-      colnames(AcidStress)[i]
+            position_ME = position_ME+1
+          }
+          position_ME = i*33+1
+        }
+        stress=rep(generic_stress_sample_names,ncol(AcidStress))
+        stress_1 <- gsub("_1","", stress)
+        stress_2 <- gsub("_2","", stress_1)
+        stress_3 <- gsub("_3","", stress_2)
+        stress=stress_3
+        
+        ME_Kruskall_dataset = as.data.frame(cbind(ME_lengthOfVector,stress, Module_names))
+        colnames(ME_Kruskall_dataset) <- c("MEigengene", "Stress", "Module_names")
+        #Plot <- ggplot(ME_Kruskall_dataset, aes(x=ME_Kruskall_dataset[,2], y=as.numeric(ME_Kruskall_dataset[,1]), fill = ME_Kruskall_dataset[,2])) +  labs(y="Standard deviation of gene expression", x = "Stress conditions")
+        #Plot + geom_violin( width=1, color="white") +geom_boxplot(width = .1, color= "black", alpha = .5) +scale_fill_brewer(palette = "Paired", aesthetics = "fill",guide = "none") +theme_classic(base_size = 16)
+        return(pairwise.wilcox.test(as.numeric(ME_Kruskall_dataset[,1]),ME_Kruskall_dataset[,2],p.adjust.method = "BH"))
+      } 
+      
+      
+      # boxplot(t(AcidStress))
+    })
+    
+    
+    
+    output$mytableNd2 <- renderTable({
+      test_result <- box_plot_ND_test()
+      
+      # Extract matrix of p-values from the test result
+      pvals_matrix <- test_result$p.value
+      
+      # Convert p-values to asterisks based on significance
+      pvals_matrix[pvals_matrix < 0.001] <- "***"
+      pvals_matrix[pvals_matrix >= 0.001 & pvals_matrix < 0.01] <- "**"
+      pvals_matrix[pvals_matrix >= 0.01 & pvals_matrix < 0.05] <- "*"
+      pvals_matrix[pvals_matrix >= 0.05] <- "ns"
+      
+      # Set the upper triangle values to ""
+      pvals_matrix[upper.tri(pvals_matrix, diag = FALSE)] <- ""
+      
+      # Convert the matrix to a data frame to have row names as an explicit column
+      df <- data.frame(Group = rownames(pvals_matrix), pvals_matrix)
+      
+      df
+      
+    })
+    
+    #####Finnish test#####
+    
     datNd <- reactive({
       dataset_As <- datasetInputStimulonNd()
       
@@ -7349,7 +8002,20 @@ server <-function(input, output,session) {
     
     output$mytableNd <- DT::renderDataTable({datNd()
       
-      return(datatable(datNd(), extensions = 'Buttons',options = list(paging=TRUE, lengthMenu=c(50,100,150), scrollX = FALSE,lengthChange = T, regex= FALSE, searching = TRUE,initComplete = JS(js),dom = 'Bfrtip',buttons = c('copy', 'csv', 'excel')),rownames=FALSE, class = "display") %>% formatStyle(names(datNd()[-1:-3]), backgroundColor = styleInterval(brks, clrs)))
+      return(datatable(datNd(), extensions = 'Buttons',options = list(paging=FALSE, lengthMenu=c(50,100,150), scrollX = FALSE,lengthChange = T, regex= FALSE, searching = TRUE,initComplete = JS(js),dom = 'Bfrtip',buttons = list(
+        list(
+          extend = "copy",
+          filename = "dataset_copy"
+        ),
+        list(
+          extend = "csv",
+          filename = "dataset_csv"
+        ),
+        list(
+          extend = "excel",
+          filename = "dataset_excel"
+        )
+      )),rownames=FALSE, class = "display") %>% formatStyle(names(datNd()[-1:-3]), backgroundColor = styleInterval(brks, clrs)))
       #options = list(paging=FALSE, scrollX = FALSE), 
       #rownames=TRUE, 
       #filter = "top"
@@ -7358,42 +8024,42 @@ server <-function(input, output,session) {
     ############Li_stimulon#############
     datasetInputStimulonLi <- reactive({
       switch(input$select_li,
-             "Achromobacter xylosoxidans Li (+) (I)"=(Achromobacter_xylosoxidans_expr_Li1_up),
-             "Achromobacter xylosoxidans Li (+) (II)"=(Achromobacter_xylosoxidans_expr_Li2_up),
-             "Acinetobacter baumannii Li (+) Oxs (+)"=(Acinetobacter_baumannii_expr_Li_up_Oxs_up),
-             "Aggregatibacter actinomycetemcomitans Li (+) (I)"=(Aggregatibacter_actinomycetemcomitans_expr_Li1_up),
-             "Aggregatibacter actinomycetemcomitans Li (+) (II)"=(Aggregatibacter_actinomycetemcomitans_expr_Li2_up),
-             "Burkholderia pseudomallei Li (+)"=(Burkholderia_pseudomallei_expr_Li_up),
-             "Campylobacter jejuni Li (+)"=(Campylobacter_jejuni_expr_Li_up),
-             "Enterococcus faecalis Li (+)"=(Enterococcus_faecalis_expr_Li_up),
-             "Escherichia coli EPEC Li (+)"=(Escherichia_coli_EPEC_expr_Li_up),
-             "Escherichia coli ETEC Li (+)"=(Escherichia_coli_ETEC_expr_Li_up),
-             "Francisella tularensis Li (+)"=(Francisella_tularensis_expr_Li_up),
-             "Helicobacter pylori G27 Li (+)"=(Helicobacter_pylori_G27_expr_Li_up),
-             "Helicobacter pylori J99 Li (+)"=(Helicobacter_pylori_J99_expr_Li_up),
-             "Klebsiella pneumoniae Li (+)"=(Klebsiella_pneumoniae_expr_Li_up),
-             "Listeria monocytogenes Li (+) Nd (-)"=(Listeria_monocytogenes_expr_Li_up_Nd_down),
-             "Staphylococcus aureus MRSA252 Li (+)"=(Staphylococcus_aureus_MRSA252_expr_Li_up),
-             "Neisseria gonorrhoeae Li (+)"=(Neisseria_gonorrhoeae_expr_Li_up),
-             "Pseudomonas aeruginosa Li (+) (I)"=(Pseudomonas_aeruginosa_expr_Li1_up),
-             "Pseudomonas aeruginosa Li (+) (II)"=(Pseudomonas_aeruginosa_expr_Li2_up),
-             "Salmonella enterica Li (+) Oxs (+)"=(Salmonella_enterica_expr_Li_up_Oxs_up),
-             "Salmonella enterica Li (+)"=(Salmonella_enterica_expr_Li_up),
-             "Staphylococcus epidermidis Li (+)"=(Staphylococcus_epidermidis_expr_Li_up),
-             "Shigella flexneri Li (+)"=(Shigella_flexneri_expr_Li_up),
-             "Shigella flexneri Li (+) Oxs (+)"=(Shigella_flexneri_expr_Li_up_Oxs_up),
-             "Streptococcus agalactiae Li (+) (I)"=(Streptococcus_agalactiae_expr_Li1_up),
-             "Streptococcus agalactiae Li (+) (II)"=(Streptococcus_agalactiae_expr_Li2_up),
-             "Streptococcus pneumoniae Li (+)"=(Streptococcus_pneumoniae_expr_Li_up),
-             "Escherichia coli UPEC Li (+)"=(Escherichia_coli_UPEC_expr_Li_up),
-             "Vibrio cholerae Li (+) (I)"=(Vibrio_cholerae_expr_Li1_up),
-             "Vibrio cholerae Li (+) (II)"=(Vibrio_cholerae_expr_Li2_up),
-             "Yersinia pseudotuberculosis Li (+)"=(Yersinia_pseudotuberculosis_expr_Li_up),
-             "Neisseria meningitidis Li (+) Sp (+)"=(Neisseria_meningitidis_expr_Sp_up_Li_up),
-             "Vibrio cholerae Li (+) Sp (+)"=(Vibrio_cholerae_expr_Sp_up_Li_up),
-             "Escherichia coli ETEC Li (+) Tm (+) "=(Escherichia_coli_ETEC_expr_Tm_up_Li_up),
-             "Streptococcus pneumoniae Li (+) Mig (-)"=(Streptococcus_pneumoniae_Li_up_Mig_down),
-             "Streptococcus pyogenes Li (+) Mig (-) Sp (-) "=(Streptococcus_pyogenes_expr_Mig_Sp_Li)
+             "Achromobacter xylosoxidans Li (+) (I)" = (Achromobacter_xylosoxidans_expr_Li1_up),
+             "Achromobacter xylosoxidans Li (+) (II)" = (Achromobacter_xylosoxidans_expr_Li2_up),
+             "Acinetobacter baumannii Li (+) Oxs (+)" = (Acinetobacter_baumannii_expr_Li_up_Oxs_up),
+             "Aggregatibacter actinomycetemcomitans Li (+) (I)" = (Aggregatibacter_actinomycetemcomitans_expr_Li1_up),
+             "Aggregatibacter actinomycetemcomitans Li (+) (II)" = (Aggregatibacter_actinomycetemcomitans_expr_Li2_up),
+             "Burkholderia pseudomallei Li (+)" = (Burkholderia_pseudomallei_expr_Li_up),
+             "Campylobacter jejuni Li (+)" = (Campylobacter_jejuni_expr_Li_up),
+             "Enterococcus faecalis Li (+)" = (Enterococcus_faecalis_expr_Li_up),
+             "Escherichia coli EPEC Li (+)" = (Escherichia_coli_EPEC_expr_Li_up),
+             "Escherichia coli ETEC Li (+)" = (Escherichia_coli_ETEC_expr_Li_up),
+             "Francisella tularensis Li (+)" = (Francisella_tularensis_expr_Li_up),
+             "Helicobacter pylori G27 Li (+)" = (Helicobacter_pylori_G27_expr_Li_up),
+             "Helicobacter pylori J99 Li (+)" = (Helicobacter_pylori_J99_expr_Li_up),
+             "Klebsiella pneumoniae Li (+)" = (Klebsiella_pneumoniae_expr_Li_up),
+             "Listeria monocytogenes Li (+) Nd (-)" = (Listeria_monocytogenes_expr_Li_up_Nd_down),
+             "Staphylococcus aureus MRSA252 Li (+)" = (Staphylococcus_aureus_MRSA252_expr_Li_up),
+             "Neisseria gonorrhoeae Li (+)" = (Neisseria_gonorrhoeae_expr_Li_up),
+             "Pseudomonas aeruginosa Li (+) (I)" = (Pseudomonas_aeruginosa_expr_Li1_up),
+             "Pseudomonas aeruginosa Li (+) (II)" = (Pseudomonas_aeruginosa_expr_Li2_up),
+             "Salmonella enterica Li (+) Oxs (+)" = (Salmonella_enterica_expr_Li_up_Oxs_up),
+             "Salmonella enterica Li (+)" = (Salmonella_enterica_expr_Li_up),
+             "Staphylococcus epidermidis Li (+)" = (Staphylococcus_epidermidis_expr_Li_up),
+             "Shigella flexneri Li (+)" = (Shigella_flexneri_expr_Li_up),
+             "Shigella flexneri Li (+) Oxs (+)" = (Shigella_flexneri_expr_Li_up_Oxs_up),
+             "Streptococcus agalactiae Li (+) (I)" = (Streptococcus_agalactiae_expr_Li1_up),
+             "Streptococcus agalactiae Li (+) (II)" = (Streptococcus_agalactiae_expr_Li2_up),
+             "Streptococcus pneumoniae Li (+)" = (Streptococcus_pneumoniae_expr_Li_up),
+             "Escherichia coli UPEC Li (+)" = (Escherichia_coli_UPEC_expr_Li_up),
+             "Vibrio cholerae Li (+) (I)" = (Vibrio_cholerae_expr_Li1_up),
+             "Vibrio cholerae Li (+) (II)" = (Vibrio_cholerae_expr_Li2_up),
+             "Yersinia pseudotuberculosis Li (+)" = (Yersinia_pseudotuberculosis_expr_Li_up),
+             "Neisseria meningitidis Li (+) Sp (+)" = (Neisseria_meningitidis_expr_Sp_up_Li_up),
+             "Vibrio cholerae Li (+) Sp (+)" = (Vibrio_cholerae_expr_Sp_up_Li_up),
+             "Escherichia coli ETEC Li (+) Tm (+) " = (Escherichia_coli_ETEC_expr_Tm_up_Li_up),
+             "Streptococcus pneumoniae Li (+) Mig (-)" = (Streptococcus_pneumoniae_Li_up_Mig_down),
+             "Streptococcus pyogenes Li (+) Mig (-) Sp (-) " = (Streptococcus_pyogenes_expr_Mig_Sp_Li)
              
              
              
@@ -7496,6 +8162,100 @@ server <-function(input, output,session) {
       box_plot_Li()
     )
     
+#####test###
+    
+    box_plot_Li_test <- reactive({
+      AcidStress <- datasetInputStimulonLi()
+      if (nrow(AcidStress) == 36 ) {
+        
+        generic_stress_sample_names=c("As_1","As_2","As_3","Bs_1","Bs_2","Bs_3","Ctrl_1","Ctrl_2","Ctrl_3","Li_1","Li_2","Li_3","Mig_1","Mig_2","Mig_3","Nd_1","Nd_2","Nd_3","Ns_1","Ns_2","Ns_3","Oss_1","Oss_2","Oss_3","Oxs_1","Oxs_2","Oxs_3","Sp_1","Sp_2","Sp_3","Tm_1","Tm_2","Tm_3","Vic_1","Vic_2","Vic_3")
+        #Vibrio_expr_1 = scale(Vibrio_expr[,colorh1==which.module ])
+        ME_lengthOfVector=rep(NA, ncol(AcidStress)*36)
+        Module_names <- rep(colnames(AcidStress),36)
+        lengthOfVector_col=ncol(AcidStress)
+        position_ME=1
+        for(i in 1:lengthOfVector_col) {
+          for(j in 1:36) {
+            ME_lengthOfVector[position_ME] <- AcidStress[j,i]
+            Module_names[position_ME] <-      colnames(AcidStress)[i]
+            position_ME = position_ME+1
+          }
+          position_ME = i*36+1
+        }
+        stress=rep(generic_stress_sample_names,ncol(AcidStress))
+        stress_1 <- gsub("_1","", stress)
+        stress_2 <- gsub("_2","", stress_1)
+        stress_3 <- gsub("_3","", stress_2)
+        stress=stress_3
+        
+        ME_Kruskall_dataset = as.data.frame(cbind(ME_lengthOfVector,stress, Module_names))
+        colnames(ME_Kruskall_dataset) <- c("MEigengene", "Stress", "Module_names")
+        #Plot <- ggplot(ME_Kruskall_dataset, aes(x=ME_Kruskall_dataset[,2], y=as.numeric(ME_Kruskall_dataset[,1]), fill = ME_Kruskall_dataset[,2])) +  labs(y="Standard deviation of gene expression", x = "Stress conditions")
+        #Plot + geom_violin( width=1, color="white" ) +geom_boxplot(width = .1, color= "black", alpha = .5) +scale_fill_brewer(palette = "Paired", aesthetics = "fill",guide = "none") +theme_classic(base_size = 16)
+        
+        return(pairwise.wilcox.test(as.numeric(ME_Kruskall_dataset[,1]),ME_Kruskall_dataset[,2],p.adjust.method = "BH"))
+        
+      } 
+      
+      else if (nrow(AcidStress) == 33 ) {
+        
+        generic_stress_sample_names=c("As_1","As_2","As_3","Ctrl_1","Ctrl_2","Ctrl_3","Li_1","Li_2","Li_3","Mig_1","Mig_2","Mig_3","Nd_1","Nd_2","Nd_3","Ns_1","Ns_2","Ns_3","Oss_1","Oss_2","Oss_3","Oxs_1","Oxs_2","Oxs_3","Sp_1","Sp_2","Sp_3","Tm_1","Tm_2","Tm_3","Vic_1","Vic_2","Vic_3")
+        #Vibrio_expr_1 = scale(Vibrio_expr[,colorh1==which.module ])
+        ME_lengthOfVector=rep(NA, ncol(AcidStress)*33)
+        Module_names <- rep(colnames(AcidStress),33)
+        lengthOfVector_col=ncol(AcidStress)
+        position_ME=1
+        for(i in 1:lengthOfVector_col) {
+          for(j in 1:33) {
+            ME_lengthOfVector[position_ME] <- AcidStress[j,i]
+            Module_names[position_ME] <-      colnames(AcidStress)[i]
+            position_ME = position_ME+1
+          }
+          position_ME = i*33+1
+        }
+        stress=rep(generic_stress_sample_names,ncol(AcidStress))
+        stress_1 <- gsub("_1","", stress)
+        stress_2 <- gsub("_2","", stress_1)
+        stress_3 <- gsub("_3","", stress_2)
+        stress=stress_3
+        
+        ME_Kruskall_dataset = as.data.frame(cbind(ME_lengthOfVector,stress, Module_names))
+        colnames(ME_Kruskall_dataset) <- c("MEigengene", "Stress", "Module_names")
+        #Plot <- ggplot(ME_Kruskall_dataset, aes(x=ME_Kruskall_dataset[,2], y=as.numeric(ME_Kruskall_dataset[,1]), fill = ME_Kruskall_dataset[,2])) +  labs(y="Standard deviation of gene expression", x = "Stress conditions")
+        #Plot + geom_violin( width=1, color="white") +geom_boxplot(width = .1, color= "black", alpha = .5) +scale_fill_brewer(palette = "Paired", aesthetics = "fill",guide = "none") +theme_classic(base_size = 16)
+        return(pairwise.wilcox.test(as.numeric(ME_Kruskall_dataset[,1]),ME_Kruskall_dataset[,2],p.adjust.method = "BH"))
+      } 
+      
+      
+      # boxplot(t(AcidStress))
+    })
+    
+    
+    
+    output$mytableLi2 <- renderTable({
+      test_result <- box_plot_Li_test()
+      
+      # Extract matrix of p-values from the test result
+      pvals_matrix <- test_result$p.value
+      
+      # Convert p-values to asterisks based on significance
+      pvals_matrix[pvals_matrix < 0.001] <- "***"
+      pvals_matrix[pvals_matrix >= 0.001 & pvals_matrix < 0.01] <- "**"
+      pvals_matrix[pvals_matrix >= 0.01 & pvals_matrix < 0.05] <- "*"
+      pvals_matrix[pvals_matrix >= 0.05] <- "ns"
+      
+      # Set the upper triangle values to ""
+      pvals_matrix[upper.tri(pvals_matrix, diag = FALSE)] <- ""
+      
+      # Convert the matrix to a data frame to have row names as an explicit column
+      df <- data.frame(Group = rownames(pvals_matrix), pvals_matrix)
+      
+      df
+      
+    })
+    
+    #####test finish####
+    
     datLi <- reactive({
       dataset_As <- datasetInputStimulonLi()
       
@@ -7530,7 +8290,20 @@ server <-function(input, output,session) {
     
     output$mytableLi <- DT::renderDataTable({datLi()
       
-      return(datatable(datLi(), extensions = 'Buttons',options = list(paging=TRUE, lengthMenu=c(50,100,150), scrollX = FALSE,lengthChange = T, regex= FALSE, searching = TRUE,initComplete = JS(js),dom = 'Bfrtip',buttons = c('copy', 'csv', 'excel')),rownames=FALSE, class = "display") %>% formatStyle(names(datLi()[-1:-3]), backgroundColor = styleInterval(brks, clrs)))
+      return(datatable(datLi(), extensions = 'Buttons',options = list(paging=FALSE, lengthMenu=c(50,100,150), scrollX = FALSE,lengthChange = T, regex= FALSE, searching = TRUE,initComplete = JS(js),dom = 'Bfrtip',buttons = list(
+        list(
+          extend = "copy",
+          filename = "dataset_copy"
+        ),
+        list(
+          extend = "csv",
+          filename = "dataset_csv"
+        ),
+        list(
+          extend = "excel",
+          filename = "dataset_excel"
+        )
+      )),rownames=FALSE, class = "display") %>% formatStyle(names(datLi()[-1:-3]), backgroundColor = styleInterval(brks, clrs)))
       #options = list(paging=FALSE, scrollX = FALSE), 
       #rownames=TRUE, 
       #filter = "top"
@@ -7538,70 +8311,70 @@ server <-function(input, output,session) {
     ############Mig_stimulon#############
     datasetInputStimulonMig <- reactive({
       switch(input$select_mig,
-             "Burkholderia pseudomallei Mig (+) Sp (+)"=(Burkholderia_pseudomallei_expr_Mig_up_Sp_up),
-             "Enterococcus faecalis Mig (+) Vic (+)"=(Enterococcus_faecalis_expr_Mig_up_Vic_up),
-             "Streptococcus pyogenes Mig (+) Sp (+)"=(Streptococcus_pyogenes_expr_Mig_up_Sp_up),
-             "Streptococcus agalactiae Mig (+) Sp (+)"=(Streptococcus_agalactiae_expr_Sp_up_Mig_up),
+             "Burkholderia pseudomallei Mig (+) Sp (+)" = (Burkholderia_pseudomallei_expr_Mig_up_Sp_up),
+             "Enterococcus faecalis Mig (+) Vic (+)" = (Enterococcus_faecalis_expr_Mig_up_Vic_up),
+             "Streptococcus pyogenes Mig (+) Sp (+)" = (Streptococcus_pyogenes_expr_Mig_up_Sp_up),
+             "Streptococcus agalactiae Mig (+) Sp (+)" = (Streptococcus_agalactiae_expr_Sp_up_Mig_up),
              
              
-             "Vibrio cholerae Mig (+) Nd (+)"=(Vibrio_cholerae_expr_Mig_up_Nd_up),
-             "Achromobacter xylosoxidans Mig (+) (I)"=(Achromobacter_xylosoxidans_expr_Mig1_up),
-             "Achromobacter xylosoxidans Mig (+) (II)"=(Achromobacter_xylosoxidans_expr_Mig2_up),
-             "Aggregatibacter actinomycetemcomitans Mig (+) Nd (-)"=(Aggregatibacter_actinomycetemcomitans_expr_Mig_up_Nd_down),
-             "Burkholderia pseudomallei Mig (+) (I)"=(Burkholderia_pseudomallei_expr_Mig1_up),
-             "Burkholderia pseudomallei Mig (+) (II)"=(Burkholderia_pseudomallei_expr_Mig2_up),
-             "Enterococcus faecalis Mig (+)"=(Enterococcus_faecalis_expr_Mig_up),
-             "Escherichia coli EPEC Mig (+)"=(Escherichia_coli_EPEC_expr_Mig_up),
-             "Escherichia coli ETEC Mig (+) Oss (+)"=(Escherichia_coli_ETEC_expr_Mig_up_Oss_up),
-             "Escherichia coli ETEC Mig (+)"=(Escherichia_coli_ETEC_expr_Mig_up),
-             "Haemophilus influenzae Mig (+)"=(Haemophilus_influenzae_expr_Mig_up),
-             "Haemophilus influenzae Mig (+) Vic (+)"=(Haemophilus_influenzae_expr_Mig_up_Vic_up),
-             "Klebsiella pneumoniae Mig (+) "=(Klebsiella_pneumoniae_expr_Mig_up),
-             "Listeria monocytogenes Mig (+)"=(Listeria_monocytogenes_expr_Mig_up),
-             "Staphylococcus aureus MRSA252 Mig (+) Nd (+)"=(Staphylococcus_aureus_MRSA252_expr_Mig_up_Nd_up),
-             "Staphylococcus aureus MRSA252 Mig (+) (I)"=(Staphylococcus_aureus_MRSA252_expr_Mig1_up),
-             "Staphylococcus aureus MRSA252 Mig (+) (II)"=(Staphylococcus_aureus_MRSA252_expr_Mig2_up),
-             "Staphylococcus aureus MSSA476 Mig (+)"=(Staphylococcus_aureus_MSSA476_expr_Mig_up),
-             "Neisseria gonorrhoeae Mig (+) (I)"=(Neisseria_gonorrhoeae_expr_Mig1_up),
-             "Neisseria gonorrhoeae Mig (+) (II)"=(Neisseria_gonorrhoeae_expr_Mig2_up),
-             "Neisseria meningitidis Mig (+)"=(Neisseria_meningitidis_expr_Mig_up),
-             "Pseudomonas aeruginosa Mig (+) Oxs (+)"=(Pseudomonas_aeruginosa_expr_Mig_up_Oxs_up),
-             "Pseudomonas aeruginosa Mig (+)"=(Pseudomonas_aeruginosa_expr_Mig_up),
-             "Pseudomonas aeruginosa Mig (+) Ns (-)"=(Pseudomonas_aeruginosa_expr_Mig_up_Ns_down),
-             "Salmonella enterica Mig (+)"=(Salmonella_enterica_expr_Mig_up),
-             "Staphylococcus epidermidis Mig (+) (I)"=(Staphylococcus_epidermidis_expr_Mig1_up),
-             "Staphylococcus epidermidis Mig (+) (II)"=(Staphylococcus_epidermidis_expr_Mig2_up),
-             "Staphylococcus epidermidis Mig (+) Tm (-)"=(Staphylococcus_epidermidis_expr_Mig_up_Tm_down),
-             "Staphylococcus epidermidis Mig (+) As (+)"=(Staphylococcus_epidermidis_expr_Mig_up_As_up),
-             "Shigella flexneri Mig (+)"=(Shigella_flexneri_expr_Mig_up),
-             "Streptococcus agalactiae Mig (+) Nd (-)"=(Streptococcus_agalactiae_expr_Mig_up_Nd_down),
-             "Streptococcus pneumoniae Mig (+)"=(Streptococcus_pneumoniae_expr_Mig_up),
-             "Escherichia coli UPEC Mig (+)"=(Escherichia_coli_UPEC_expr_Mig_up),
-             "Escherichia coli UPEC Mig (+) Vic (+)"=(Escherichia_coli_UPEC_expr_Mig_up_Vic_up),
-             "Vibrio cholerae Mig (+) (I)"=(Vibrio_cholerae_expr_Mig1_up),
-             "Vibrio cholerae Mig (+) (II)"=(Vibrio_cholerae_expr_Mig2_up),
-             "Yersinia pseudotuberculosis Mig (+)"=(Yersinia_pseudotuberculosis_expr_Mig_up),
-             "Streptococcus pyogenes Mig (-) Sp (-) (I)"=(Streptococcus_pyogenes_expr_Sp_Mg),
-             "Yersinia pseudotuberculosis Mig (-) Sp (+)"=(Yersinia_pseudotuberculosis_expr_Sp_up_Mig_down),
+             "Vibrio cholerae Mig (+) Nd (+)" = (Vibrio_cholerae_expr_Mig_up_Nd_up),
+             "Achromobacter xylosoxidans Mig (+) (I)" = (Achromobacter_xylosoxidans_expr_Mig1_up),
+             "Achromobacter xylosoxidans Mig (+) (II)" = (Achromobacter_xylosoxidans_expr_Mig2_up),
+             "Aggregatibacter actinomycetemcomitans Mig (+) Nd (-)" = (Aggregatibacter_actinomycetemcomitans_expr_Mig_up_Nd_down),
+             "Burkholderia pseudomallei Mig (+) (I)" = (Burkholderia_pseudomallei_expr_Mig1_up),
+             "Burkholderia pseudomallei Mig (+) (II)" = (Burkholderia_pseudomallei_expr_Mig2_up),
+             "Enterococcus faecalis Mig (+)" = (Enterococcus_faecalis_expr_Mig_up),
+             "Escherichia coli EPEC Mig (+)" = (Escherichia_coli_EPEC_expr_Mig_up),
+             "Escherichia coli ETEC Mig (+) Oss (+)" = (Escherichia_coli_ETEC_expr_Mig_up_Oss_up),
+             "Escherichia coli ETEC Mig (+)" = (Escherichia_coli_ETEC_expr_Mig_up),
+             "Haemophilus influenzae Mig (+)" = (Haemophilus_influenzae_expr_Mig_up),
+             "Haemophilus influenzae Mig (+) Vic (+)" = (Haemophilus_influenzae_expr_Mig_up_Vic_up),
+             "Klebsiella pneumoniae Mig (+) " = (Klebsiella_pneumoniae_expr_Mig_up),
+             "Listeria monocytogenes Mig (+)" = (Listeria_monocytogenes_expr_Mig_up),
+             "Staphylococcus aureus MRSA252 Mig (+) Nd (+)" = (Staphylococcus_aureus_MRSA252_expr_Mig_up_Nd_up),
+             "Staphylococcus aureus MRSA252 Mig (+) (I)" = (Staphylococcus_aureus_MRSA252_expr_Mig1_up),
+             "Staphylococcus aureus MRSA252 Mig (+) (II)" = (Staphylococcus_aureus_MRSA252_expr_Mig2_up),
+             "Staphylococcus aureus MSSA476 Mig (+)" = (Staphylococcus_aureus_MSSA476_expr_Mig_up),
+             "Neisseria gonorrhoeae Mig (+) (I)" = (Neisseria_gonorrhoeae_expr_Mig1_up),
+             "Neisseria gonorrhoeae Mig (+) (II)" = (Neisseria_gonorrhoeae_expr_Mig2_up),
+             "Neisseria meningitidis Mig (+)" = (Neisseria_meningitidis_expr_Mig_up),
+             "Pseudomonas aeruginosa Mig (+) Oxs (+)" = (Pseudomonas_aeruginosa_expr_Mig_up_Oxs_up),
+             "Pseudomonas aeruginosa Mig (+)" = (Pseudomonas_aeruginosa_expr_Mig_up),
+             "Pseudomonas aeruginosa Mig (+) Ns (-)" = (Pseudomonas_aeruginosa_expr_Mig_up_Ns_down),
+             "Salmonella enterica Mig (+)" = (Salmonella_enterica_expr_Mig_up),
+             "Staphylococcus epidermidis Mig (+) (I)" = (Staphylococcus_epidermidis_expr_Mig1_up),
+             "Staphylococcus epidermidis Mig (+) (II)" = (Staphylococcus_epidermidis_expr_Mig2_up),
+             "Staphylococcus epidermidis Mig (+) Tm (-)" = (Staphylococcus_epidermidis_expr_Mig_up_Tm_down),
+             "Staphylococcus epidermidis Mig (+) As (+)" = (Staphylococcus_epidermidis_expr_Mig_up_As_up),
+             "Shigella flexneri Mig (+)" = (Shigella_flexneri_expr_Mig_up),
+             "Streptococcus agalactiae Mig (+) Nd (-)" = (Streptococcus_agalactiae_expr_Mig_up_Nd_down),
+             "Streptococcus pneumoniae Mig (+)" = (Streptococcus_pneumoniae_expr_Mig_up),
+             "Escherichia coli UPEC Mig (+)" = (Escherichia_coli_UPEC_expr_Mig_up),
+             "Escherichia coli UPEC Mig (+) Vic (+)" = (Escherichia_coli_UPEC_expr_Mig_up_Vic_up),
+             "Vibrio cholerae Mig (+) (I)" = (Vibrio_cholerae_expr_Mig1_up),
+             "Vibrio cholerae Mig (+) (II)" = (Vibrio_cholerae_expr_Mig2_up),
+             "Yersinia pseudotuberculosis Mig (+)" = (Yersinia_pseudotuberculosis_expr_Mig_up),
+             "Streptococcus pyogenes Mig (-) Sp (-) (I)" = (Streptococcus_pyogenes_expr_Sp_Mg),
+             "Yersinia pseudotuberculosis Mig (-) Sp (+)" = (Yersinia_pseudotuberculosis_expr_Sp_up_Mig_down),
              
-             "Enterococcus faecalis Mig (+) Sp (+)"=(Enterococcus_faecalis_expr_Sp_up_Mig_up),
+             "Enterococcus faecalis Mig (+) Sp (+)" = (Enterococcus_faecalis_expr_Sp_up_Mig_up),
              
              
-             "Staphylococcus aureus MSSA476 Mig (-) Nd (-)"=(Staphylococcus_aureus_MSSA476_expr_Nd_Mig),
-             "Staphylococcus aureus MRSA252 Mig (-) Nd (-)"=(Staphylococcus_aureus_MRSA252_expr_Nd_Mig),
-             "Escherichia coli ETEC Mig (+) Nd (+)"=(Escherichia_coli_ETEC_expr_Nd_up_Mig_up),
-             "Streptococcus pneumoniae Mig (-) Bs (+)"=(Streptococcus_pneumoniae_expr_Bs_Mig),
-             "Haemophilus influenzae Mig (-) Vic (+)"=(Haemophilus_influenzae_expr_Vic_up_Mig_down),
-             "Streptococcus pneumoniae Mig (-) Vic (+) "=(Streptococcus_pneumoniae_expr_Vic_up_Mig_down),
-             "Yersinia pseudotuberculosis Mig (-) Vic (+) "=(Yersinia_pseudotuberculosis_expr_Vic_up_Mig_down),
-             "Streptococcus pneumoniae Mig (-) Li (+)"=(Streptococcus_pneumoniae_expr_Li_up_Mig_down),
-             "Streptococcus pyogenes Mig (-) Sp (-) (II)"=(Streptococcus_pyogenes_expr_Mig2_down_Sp_down),
-             "Haemophilus influenzae Mig (-) (I)"=(Haemophilus_influenzae_expr_Mig_down),
-             "Haemophilus influenzae Mig (-) (II)"=(Haemophilus_influenzae_expr_Mig2_down),
-             "Streptococcus pyogenes Mig (-) Sp (-) Li (+)"=(Streptococcus_pyogenes_expr_Mig_Sp_Li),
-             "Escherichia coli UPEC Mig (-) Sp (-)"=(Escherichia_coli_UPEC_expr_Mig_Sp_down),
-             "Shigella flexneri Mig (-) Sp (-)"=(Shigella_flexneri_expr_Mig_Sp_down),
-             "Listeria monocytogenes Mig (-)"=(Listeria_monocytogenes_expr_Mig_down)
+             "Staphylococcus aureus MSSA476 Mig (-) Nd (-)" = (Staphylococcus_aureus_MSSA476_expr_Nd_Mig),
+             "Staphylococcus aureus MRSA252 Mig (-) Nd (-)" = (Staphylococcus_aureus_MRSA252_expr_Nd_Mig),
+             "Escherichia coli ETEC Mig (+) Nd (+)" = (Escherichia_coli_ETEC_expr_Nd_up_Mig_up),
+             "Streptococcus pneumoniae Mig (-) Bs (+)" = (Streptococcus_pneumoniae_expr_Bs_Mig),
+             "Haemophilus influenzae Mig (-) Vic (+)" = (Haemophilus_influenzae_expr_Vic_up_Mig_down),
+             "Streptococcus pneumoniae Mig (-) Vic (+) " = (Streptococcus_pneumoniae_expr_Vic_up_Mig_down),
+             "Yersinia pseudotuberculosis Mig (-) Vic (+) " = (Yersinia_pseudotuberculosis_expr_Vic_up_Mig_down),
+             "Streptococcus pneumoniae Mig (-) Li (+)" = (Streptococcus_pneumoniae_expr_Li_up_Mig_down),
+             "Streptococcus pyogenes Mig (-) Sp (-) (II)" = (Streptococcus_pyogenes_expr_Mig2_down_Sp_down),
+             "Haemophilus influenzae Mig (-) (I)" = (Haemophilus_influenzae_expr_Mig_down),
+             "Haemophilus influenzae Mig (-) (II)" = (Haemophilus_influenzae_expr_Mig2_down),
+             "Streptococcus pyogenes Mig (-) Sp (-) Li (+)" = (Streptococcus_pyogenes_expr_Mig_Sp_Li),
+             "Escherichia coli UPEC Mig (-) Sp (-)" = (Escherichia_coli_UPEC_expr_Mig_Sp_down),
+             "Shigella flexneri Mig (-) Sp (-)" = (Shigella_flexneri_expr_Mig_Sp_down),
+             "Listeria monocytogenes Mig (-)" = (Listeria_monocytogenes_expr_Mig_down)
              
              
              
@@ -7705,6 +8478,100 @@ server <-function(input, output,session) {
       box_plot_Mig()
     )
     
+    ####test####
+    
+    box_plot_Mig_test <- reactive({
+      AcidStress <- datasetInputStimulonMig()
+      if (nrow(AcidStress) == 36 ) {
+        
+        generic_stress_sample_names=c("As_1","As_2","As_3","Bs_1","Bs_2","Bs_3","Ctrl_1","Ctrl_2","Ctrl_3","Li_1","Li_2","Li_3","Mig_1","Mig_2","Mig_3","Nd_1","Nd_2","Nd_3","Ns_1","Ns_2","Ns_3","Oss_1","Oss_2","Oss_3","Oxs_1","Oxs_2","Oxs_3","Sp_1","Sp_2","Sp_3","Tm_1","Tm_2","Tm_3","Vic_1","Vic_2","Vic_3")
+        #Vibrio_expr_1 = scale(Vibrio_expr[,colorh1==which.module ])
+        ME_lengthOfVector=rep(NA, ncol(AcidStress)*36)
+        Module_names <- rep(colnames(AcidStress),36)
+        lengthOfVector_col=ncol(AcidStress)
+        position_ME=1
+        for(i in 1:lengthOfVector_col) {
+          for(j in 1:36) {
+            ME_lengthOfVector[position_ME] <- AcidStress[j,i]
+            Module_names[position_ME] <-      colnames(AcidStress)[i]
+            position_ME = position_ME+1
+          }
+          position_ME = i*36+1
+        }
+        stress=rep(generic_stress_sample_names,ncol(AcidStress))
+        stress_1 <- gsub("_1","", stress)
+        stress_2 <- gsub("_2","", stress_1)
+        stress_3 <- gsub("_3","", stress_2)
+        stress=stress_3
+        
+        ME_Kruskall_dataset = as.data.frame(cbind(ME_lengthOfVector,stress, Module_names))
+        colnames(ME_Kruskall_dataset) <- c("MEigengene", "Stress", "Module_names")
+        #Plot <- ggplot(ME_Kruskall_dataset, aes(x=ME_Kruskall_dataset[,2], y=as.numeric(ME_Kruskall_dataset[,1]), fill = ME_Kruskall_dataset[,2])) +  labs(y="Standard deviation of gene expression", x = "Stress conditions")
+        #Plot + geom_violin( width=1, color="white" ) +geom_boxplot(width = .1, color= "black", alpha = .5) +scale_fill_brewer(palette = "Paired", aesthetics = "fill",guide = "none") +theme_classic(base_size = 16)
+        
+        return(pairwise.wilcox.test(as.numeric(ME_Kruskall_dataset[,1]),ME_Kruskall_dataset[,2],p.adjust.method = "BH"))
+        
+      } 
+      
+      else if (nrow(AcidStress) == 33 ) {
+        
+        generic_stress_sample_names=c("As_1","As_2","As_3","Ctrl_1","Ctrl_2","Ctrl_3","Li_1","Li_2","Li_3","Mig_1","Mig_2","Mig_3","Nd_1","Nd_2","Nd_3","Ns_1","Ns_2","Ns_3","Oss_1","Oss_2","Oss_3","Oxs_1","Oxs_2","Oxs_3","Sp_1","Sp_2","Sp_3","Tm_1","Tm_2","Tm_3","Vic_1","Vic_2","Vic_3")
+        #Vibrio_expr_1 = scale(Vibrio_expr[,colorh1==which.module ])
+        ME_lengthOfVector=rep(NA, ncol(AcidStress)*33)
+        Module_names <- rep(colnames(AcidStress),33)
+        lengthOfVector_col=ncol(AcidStress)
+        position_ME=1
+        for(i in 1:lengthOfVector_col) {
+          for(j in 1:33) {
+            ME_lengthOfVector[position_ME] <- AcidStress[j,i]
+            Module_names[position_ME] <-      colnames(AcidStress)[i]
+            position_ME = position_ME+1
+          }
+          position_ME = i*33+1
+        }
+        stress=rep(generic_stress_sample_names,ncol(AcidStress))
+        stress_1 <- gsub("_1","", stress)
+        stress_2 <- gsub("_2","", stress_1)
+        stress_3 <- gsub("_3","", stress_2)
+        stress=stress_3
+        
+        ME_Kruskall_dataset = as.data.frame(cbind(ME_lengthOfVector,stress, Module_names))
+        colnames(ME_Kruskall_dataset) <- c("MEigengene", "Stress", "Module_names")
+        #Plot <- ggplot(ME_Kruskall_dataset, aes(x=ME_Kruskall_dataset[,2], y=as.numeric(ME_Kruskall_dataset[,1]), fill = ME_Kruskall_dataset[,2])) +  labs(y="Standard deviation of gene expression", x = "Stress conditions")
+        #Plot + geom_violin( width=1, color="white") +geom_boxplot(width = .1, color= "black", alpha = .5) +scale_fill_brewer(palette = "Paired", aesthetics = "fill",guide = "none") +theme_classic(base_size = 16)
+        return(pairwise.wilcox.test(as.numeric(ME_Kruskall_dataset[,1]),ME_Kruskall_dataset[,2],p.adjust.method = "BH"))
+      } 
+      
+      
+      # boxplot(t(AcidStress))
+    })
+    
+    
+    
+    output$mytableMig2 <- renderTable({
+      test_result <- box_plot_Mig_test()
+      
+      # Extract matrix of p-values from the test result
+      pvals_matrix <- test_result$p.value
+      
+      # Convert p-values to asterisks based on significance
+      pvals_matrix[pvals_matrix < 0.001] <- "***"
+      pvals_matrix[pvals_matrix >= 0.001 & pvals_matrix < 0.01] <- "**"
+      pvals_matrix[pvals_matrix >= 0.01 & pvals_matrix < 0.05] <- "*"
+      pvals_matrix[pvals_matrix >= 0.05] <- "ns"
+      
+      # Set the upper triangle values to ""
+      pvals_matrix[upper.tri(pvals_matrix, diag = FALSE)] <- ""
+      
+      # Convert the matrix to a data frame to have row names as an explicit column
+      df <- data.frame(Group = rownames(pvals_matrix), pvals_matrix)
+      
+      df
+      
+    })
+    
+    ####test finish######
+    
     datMig <- reactive({
       dataset_As <- datasetInputStimulonMig()
       
@@ -7739,7 +8606,20 @@ server <-function(input, output,session) {
     
     output$mytableMig <- DT::renderDataTable({datMig()
       
-      return(datatable(datMig(), extensions = 'Buttons',options = list(paging=TRUE, lengthMenu=c(50,100,150), scrollX = FALSE,lengthChange = T, regex= FALSE, searching = TRUE,initComplete = JS(js),dom = 'Bfrtip',buttons = c('copy', 'csv', 'excel')),rownames=FALSE, class = "display") %>% formatStyle(names(datMig()[-1:-3]), backgroundColor = styleInterval(brks, clrs)))
+      return(datatable(datMig(), extensions = 'Buttons',options = list(paging=FALSE, lengthMenu=c(50,100,150), scrollX = FALSE,lengthChange = T, regex= FALSE, searching = TRUE,initComplete = JS(js),dom = 'Bfrtip',buttons = list(
+        list(
+          extend = "copy",
+          filename = "dataset_copy"
+        ),
+        list(
+          extend = "csv",
+          filename = "dataset_csv"
+        ),
+        list(
+          extend = "excel",
+          filename = "dataset_excel"
+        )
+      )),rownames=FALSE, class = "display") %>% formatStyle(names(datMig()[-1:-3]), backgroundColor = styleInterval(brks, clrs)))
       #options = list(paging=FALSE, scrollX = FALSE), 
       #rownames=TRUE, 
       #filter = "top"
@@ -7748,31 +8628,31 @@ server <-function(input, output,session) {
     datasetInputStimulonNs <- reactive({
       switch(input$select_ns,
              
-             "Achromobacter xylosoxidans Ns (+)"=(Achromobacter_xylosoxidans_expr_Ns_up),
-             "Aggregatibacter actinomycetemcomitans Ns (+)"=(Aggregatibacter_actinomycetemcomitans_expr_Ns_up),
-             "Enterococcus faecalis Ns (+)"=(Enterococcus_faecalis_expr_Ns_up),
-             "Escherichia coli EPEC Ns (+)"=(Escherichia_coli_EPEC_expr_Ns_up),
-             "Escherichia coli ETEC Ns (+)"=(Escherichia_coli_ETEC_expr_Ns_up),
-             "Haemophilus influenzae Ns (+)"=(Haemophilus_influenzae_expr_Ns_up),
-             "Klebsiella pneumoniae Ns (+)"=(Klebsiella_pneumoniae_expr_Ns_up),
-             "Listeria monocytogenes Ns (+) (I)"=(Listeria_monocytogenes_expr_Ns_up),
-             "Pseudomonas aeruginosa Ns (+)"=(Pseudomonas_aeruginosa_expr_Ns_up),
-             "Pseudomonas aeruginosa Ns (+) Sp (-) (I)"=(Pseudomonas_aeruginosa_expr_Ns1_up_Sp_down),
-             "Pseudomonas aeruginosa Ns (+) Sp (-) (II)"=(Pseudomonas_aeruginosa_expr_Ns2_up_Sp_down),
-             "Salmonella enterica Ns (+)"=(Salmonella_enterica_expr_Ns_up),
-             "Staphylococcus epidermidis Ns (+)"=(Staphylococcus_epidermidis_expr_Ns_up),
-             "Staphylococcus epidermidis Ns (+) Tm (-)"=(Staphylococcus_epidermidis_expr_Ns_up_Tm_down),
-             "Shigella flexneri Ns (+)"=(Shigella_flexneri_expr_Ns_up),
-             "Streptococcus agalactiae Ns (+)"=(Streptococcus_pneumoniae_expr_Ns_up),
-             "Streptococcus pneumoniae Ns (+)"=(Streptococcus_pneumoniae_expr_Ns_up),
-             "Pseudomonas aeruginosa Ns (+) Nd (+)"=(Pseudomonas_aeruginosa_expr_Nd_up_Ns_up),
-             "Staphylococcus aureus MSSA476 Ns (-) As (+)"=(Staphylococcus_aureus_MSSA476_expr_As_Ns),
-             "Staphylococcus aureus MRSA252 Ns (-) Nd (+)"=(Staphylococcus_aureus_MRSA252_expr_Nd_up_Ns_down),
-             "Pseudomonas aeruginosa Ns (-) Mig (+) "=(Pseudomonas_aeruginosa_expr_Mig_up_Ns_down),
-             "Streptococcus pyogenes Ns (+) Oss (+) "=(Streptococcus_pyogenes_expr_Oss_up_Ns_up),
-             "Listeria monocytogenes Ns (+) (II)"=(Listeria_monocytogenes_expr_Ns2_up),
-             "Staphylococcus aureus MSSA476 Ns (-)"=(Staphylococcus_aureus_MSSA476_expr_Ns_down),
-             "Pseudomonas aeruginosa Ns (-)"=(Pseudomonas_aeruginosa_expr_Ns_down)
+             "Achromobacter xylosoxidans Ns (+)" = (Achromobacter_xylosoxidans_expr_Ns_up),
+             "Aggregatibacter actinomycetemcomitans Ns (+)" = (Aggregatibacter_actinomycetemcomitans_expr_Ns_up),
+             "Enterococcus faecalis Ns (+)" = (Enterococcus_faecalis_expr_Ns_up),
+             "Escherichia coli EPEC Ns (+)" = (Escherichia_coli_EPEC_expr_Ns_up),
+             "Escherichia coli ETEC Ns (+)" = (Escherichia_coli_ETEC_expr_Ns_up),
+             "Haemophilus influenzae Ns (+)" = (Haemophilus_influenzae_expr_Ns_up),
+             "Klebsiella pneumoniae Ns (+)" = (Klebsiella_pneumoniae_expr_Ns_up),
+             "Listeria monocytogenes Ns (+) (I)" = (Listeria_monocytogenes_expr_Ns_up),
+             "Pseudomonas aeruginosa Ns (+)" = (Pseudomonas_aeruginosa_expr_Ns_up),
+             "Pseudomonas aeruginosa Ns (+) Sp (-) (I)" = (Pseudomonas_aeruginosa_expr_Ns1_up_Sp_down),
+             "Pseudomonas aeruginosa Ns (+) Sp (-) (II)" = (Pseudomonas_aeruginosa_expr_Ns2_up_Sp_down),
+             "Salmonella enterica Ns (+)" = (Salmonella_enterica_expr_Ns_up),
+             "Staphylococcus epidermidis Ns (+)" = (Staphylococcus_epidermidis_expr_Ns_up),
+             "Staphylococcus epidermidis Ns (+) Tm (-)" = (Staphylococcus_epidermidis_expr_Ns_up_Tm_down),
+             "Shigella flexneri Ns (+)" = (Shigella_flexneri_expr_Ns_up),
+             "Streptococcus agalactiae Ns (+)" = (Streptococcus_pneumoniae_expr_Ns_up),
+             "Streptococcus pneumoniae Ns (+)" = (Streptococcus_pneumoniae_expr_Ns_up),
+             "Pseudomonas aeruginosa Ns (+) Nd (+)" = (Pseudomonas_aeruginosa_expr_Nd_up_Ns_up),
+             "Staphylococcus aureus MSSA476 Ns (-) As (+)" = (Staphylococcus_aureus_MSSA476_expr_As_Ns),
+             "Staphylococcus aureus MRSA252 Ns (-) Nd (+)" = (Staphylococcus_aureus_MRSA252_expr_Nd_up_Ns_down),
+             "Pseudomonas aeruginosa Ns (-) Mig (+) " = (Pseudomonas_aeruginosa_expr_Mig_up_Ns_down),
+             "Streptococcus pyogenes Ns (+) Oss (+) " = (Streptococcus_pyogenes_expr_Oss_up_Ns_up),
+             "Listeria monocytogenes Ns (+) (II)" = (Listeria_monocytogenes_expr_Ns2_up),
+             "Staphylococcus aureus MSSA476 Ns (-)" = (Staphylococcus_aureus_MSSA476_expr_Ns_down),
+             "Pseudomonas aeruginosa Ns (-)" = (Pseudomonas_aeruginosa_expr_Ns_down)
              
              
              
@@ -7877,6 +8757,102 @@ server <-function(input, output,session) {
       box_plot_Ns()
     )
     
+    ######test######
+    box_plot_Ns_test <- reactive({
+      AcidStress <- datasetInputStimulonNs()
+      if (nrow(AcidStress) == 36 ) {
+        
+        generic_stress_sample_names=c("As_1","As_2","As_3","Bs_1","Bs_2","Bs_3","Ctrl_1","Ctrl_2","Ctrl_3","Li_1","Li_2","Li_3","Mig_1","Mig_2","Mig_3","Nd_1","Nd_2","Nd_3","Ns_1","Ns_2","Ns_3","Oss_1","Oss_2","Oss_3","Oxs_1","Oxs_2","Oxs_3","Sp_1","Sp_2","Sp_3","Tm_1","Tm_2","Tm_3","Vic_1","Vic_2","Vic_3")
+        #Vibrio_expr_1 = scale(Vibrio_expr[,colorh1==which.module ])
+        ME_lengthOfVector=rep(NA, ncol(AcidStress)*36)
+        Module_names <- rep(colnames(AcidStress),36)
+        lengthOfVector_col=ncol(AcidStress)
+        position_ME=1
+        for(i in 1:lengthOfVector_col) {
+          for(j in 1:36) {
+            ME_lengthOfVector[position_ME] <- AcidStress[j,i]
+            Module_names[position_ME] <-      colnames(AcidStress)[i]
+            position_ME = position_ME+1
+          }
+          position_ME = i*36+1
+        }
+        stress=rep(generic_stress_sample_names,ncol(AcidStress))
+        stress_1 <- gsub("_1","", stress)
+        stress_2 <- gsub("_2","", stress_1)
+        stress_3 <- gsub("_3","", stress_2)
+        stress=stress_3
+        
+        ME_Kruskall_dataset = as.data.frame(cbind(ME_lengthOfVector,stress, Module_names))
+        colnames(ME_Kruskall_dataset) <- c("MEigengene", "Stress", "Module_names")
+        #Plot <- ggplot(ME_Kruskall_dataset, aes(x=ME_Kruskall_dataset[,2], y=as.numeric(ME_Kruskall_dataset[,1]), fill = ME_Kruskall_dataset[,2])) +  labs(y="Standard deviation of gene expression", x = "Stress conditions")
+        #Plot + geom_violin( width=1, color="white" ) +geom_boxplot(width = .1, color= "black", alpha = .5) +scale_fill_brewer(palette = "Paired", aesthetics = "fill",guide = "none") +theme_classic(base_size = 16)
+        
+        return(pairwise.wilcox.test(as.numeric(ME_Kruskall_dataset[,1]),ME_Kruskall_dataset[,2],p.adjust.method = "BH"))
+        
+      } 
+      
+      else if (nrow(AcidStress) == 33 ) {
+        
+        generic_stress_sample_names=c("As_1","As_2","As_3","Ctrl_1","Ctrl_2","Ctrl_3","Li_1","Li_2","Li_3","Mig_1","Mig_2","Mig_3","Nd_1","Nd_2","Nd_3","Ns_1","Ns_2","Ns_3","Oss_1","Oss_2","Oss_3","Oxs_1","Oxs_2","Oxs_3","Sp_1","Sp_2","Sp_3","Tm_1","Tm_2","Tm_3","Vic_1","Vic_2","Vic_3")
+        #Vibrio_expr_1 = scale(Vibrio_expr[,colorh1==which.module ])
+        ME_lengthOfVector=rep(NA, ncol(AcidStress)*33)
+        Module_names <- rep(colnames(AcidStress),33)
+        lengthOfVector_col=ncol(AcidStress)
+        position_ME=1
+        for(i in 1:lengthOfVector_col) {
+          for(j in 1:33) {
+            ME_lengthOfVector[position_ME] <- AcidStress[j,i]
+            Module_names[position_ME] <-      colnames(AcidStress)[i]
+            position_ME = position_ME+1
+          }
+          position_ME = i*33+1
+        }
+        stress=rep(generic_stress_sample_names,ncol(AcidStress))
+        stress_1 <- gsub("_1","", stress)
+        stress_2 <- gsub("_2","", stress_1)
+        stress_3 <- gsub("_3","", stress_2)
+        stress=stress_3
+        
+        ME_Kruskall_dataset = as.data.frame(cbind(ME_lengthOfVector,stress, Module_names))
+        colnames(ME_Kruskall_dataset) <- c("MEigengene", "Stress", "Module_names")
+        #Plot <- ggplot(ME_Kruskall_dataset, aes(x=ME_Kruskall_dataset[,2], y=as.numeric(ME_Kruskall_dataset[,1]), fill = ME_Kruskall_dataset[,2])) +  labs(y="Standard deviation of gene expression", x = "Stress conditions")
+        #Plot + geom_violin( width=1, color="white") +geom_boxplot(width = .1, color= "black", alpha = .5) +scale_fill_brewer(palette = "Paired", aesthetics = "fill",guide = "none") +theme_classic(base_size = 16)
+        return(pairwise.wilcox.test(as.numeric(ME_Kruskall_dataset[,1]),ME_Kruskall_dataset[,2],p.adjust.method = "BH"))
+      } 
+      
+      
+      # boxplot(t(AcidStress))
+    })
+    
+    
+    
+    output$mytableNs2 <- renderTable({
+      test_result <- box_plot_Ns_test()
+      
+      # Extract matrix of p-values from the test result
+      pvals_matrix <- test_result$p.value
+      
+      # Convert p-values to asterisks based on significance
+      pvals_matrix[pvals_matrix < 0.001] <- "***"
+      pvals_matrix[pvals_matrix >= 0.001 & pvals_matrix < 0.01] <- "**"
+      pvals_matrix[pvals_matrix >= 0.01 & pvals_matrix < 0.05] <- "*"
+      pvals_matrix[pvals_matrix >= 0.05] <- "ns"
+      
+      # Set the upper triangle values to ""
+      pvals_matrix[upper.tri(pvals_matrix, diag = FALSE)] <- ""
+      
+      # Convert the matrix to a data frame to have row names as an explicit column
+      df <- data.frame(Group = rownames(pvals_matrix), pvals_matrix)
+      
+      df
+      
+    })
+    
+    ######test finish######
+    
+    
+    
+    
     datNs <- reactive({
       dataset_As <- datasetInputStimulonNs()
       
@@ -7911,7 +8887,20 @@ server <-function(input, output,session) {
     
     output$mytableNs <- DT::renderDataTable({datNs()
       
-      return(datatable(datNs(), extensions = 'Buttons',options = list(paging=TRUE, lengthMenu=c(50,100,150), scrollX = FALSE,lengthChange = T, regex= FALSE, searching = TRUE,initComplete = JS(js),dom = 'Bfrtip',buttons = c('copy', 'csv', 'excel')),rownames=FALSE, class = "display") %>% formatStyle(names(datNs()[-1:-3]), backgroundColor = styleInterval(brks, clrs)))
+      return(datatable(datNs(), extensions = 'Buttons',options = list(paging=FALSE, lengthMenu=c(50,100,150), scrollX = FALSE,lengthChange = T, regex= FALSE, searching = TRUE,initComplete = JS(js),dom = 'Bfrtip',buttons = list(
+        list(
+          extend = "copy",
+          filename = "dataset_copy"
+        ),
+        list(
+          extend = "csv",
+          filename = "dataset_csv"
+        ),
+        list(
+          extend = "excel",
+          filename = "dataset_excel"
+        )
+      )),rownames=FALSE, class = "display") %>% formatStyle(names(datNs()[-1:-3]), backgroundColor = styleInterval(brks, clrs)))
       #options = list(paging=FALSE, scrollX = FALSE), 
       #rownames=TRUE, 
       #filter = "top"
@@ -7920,44 +8909,44 @@ server <-function(input, output,session) {
     datasetInputStimulonOss <- reactive({
       switch(input$select_oss,
              
-             "Achromobacter xylosoxidans Oss (+)"=(Achromobacter_xylosoxidans_expr_Oss_up),
-             "Acinetobacter baumannii Oss (+)"=(Acinetobacter_baumannii_expr_Oss_up),
-             "Aggregatibacter actinomycetemcomitans Oss (+)"=(Aggregatibacter_actinomycetemcomitans_expr_Oss_up),
-             "Borrelia burgdorferi Oss (+)"=(Borrelia_burgdorferi_expr_Oss_up),
-             "Burkholderia pseudomallei Oss (+)"=(Burkholderia_pseudomallei_expr_Oss_up),
-             "Enterococcus faecalis Oss (+)"=(Enterococcus_faecalis_expr_Oss_up),
-             "Escherichia coli EPEC Oss (+)"=(Escherichia_coli_EPEC_expr_Oss_up),
-             "Escherichia coli ETEC Oss (+)"=(Escherichia_coli_ETEC_expr_Oss_up),
-             "Francisella tularensis Oss (+)"=(Francisella_tularensis_expr_Oss_up),
-             "Haemophilus influenzae Oss (+)"=(Haemophilus_influenzae_expr_Oss_up),
-             "Helicobacter pylori G27 Oss (+)"=(Helicobacter_pylori_G27_expr_Oss_up),
-             "Helicobacter pylori J99 Oss (+)"=(Helicobacter_pylori_J99_expr_Oss_up),
-             "Klebsiella pneumoniae Oss (+) (I)"=(Klebsiella_pneumoniae_expr_Oss1_up),
-             "Klebsiella pneumoniae Oss (+) (II)"=(Klebsiella_pneumoniae_expr_Oss2_up),
-             "Klebsiella pneumoniae Oss (+) Tm (+)"=(Klebsiella_pneumoniae_expr_Oss_up_Tm_up),
-             "Listeria monocytogenes Oss (+) Nd (-)"=(Listeria_monocytogenes_expr_Oss_up_Nd_down),
-             "Staphylococcus aureus MRSA252 Oss (+)"=(Staphylococcus_aureus_MRSA252_expr_Oss_up),
-             "Staphylococcus aureus MSSA476 Oss (+) (I)"=(Staphylococcus_aureus_MSSA476_expr_Oss1_up),
-             "Staphylococcus aureus MSSA476 Oss (+) (II)"=(Staphylococcus_aureus_MSSA476_expr_Oss2_up),
-             "Neisseria meningitidis Oss (+)"=(Neisseria_meningitidis_expr_Oss_up),
-             "Pseudomonas aeruginosa Oss (+)"=(Pseudomonas_aeruginosa_expr_Oss_up),
-             "Salmonella enterica Oss (+)"=(Salmonella_enterica_expr_Oss_up),
-             "Shigella flexneri Oss (+) (I)"=(Shigella_flexneri_expr_Oss_up),
-             "Shigella flexneri Oss (+) (II)"=(Shigella_flexneri_expr_Oss2_up),
-             "Shigella flexneri Oss (+) Tm (+)"=(Shigella_flexneri_expr_Oss_up_Tm_up),
-             "Streptococcus pyogenes Oss (+)"=(Streptococcus_pyogenes_expr_Oss_up),
-             "Streptococcus pyogenes Oss (+) Ns (+)"=(Streptococcus_pyogenes_expr_Oss_up_Ns_up),
-             "Streptococcus agalactiae Oss (+)"=(Streptococcus_agalactiae_expr_Oss_up),
-             "Streptococcus agalactiae Oss (+) Nd (-)"=(Streptococcus_agalactiae_expr_Oss_up_Nd_down),
-             "Streptococcus agalactiae Oss (+) Vic (-)"=(Streptococcus_agalactiae_expr_Oss_up_Vic_down),
-             "Escherichia coli UPEC Oss (+)"=(Escherichia_coli_UPEC_expr_Oss_up),
-             "Vibrio cholerae Oss (+)"=(Vibrio_cholerae_expr_Oss_up),
-             "Yersinia pseudotuberculosis Oss (+)"=(Yersinia_pseudotuberculosis_expr_Oss_up),
-             "Escherichia coli EPEC Oss (+) Nd (+)"=(Escherichia_coli_EPEC_expr_Nd_up_Oss_up),
-             "Pseudomonas aeruginosa Oss (+) Nd (+)"=(Pseudomonas_aeruginosa_expr_Nd_up_Oss_up),
-             "Escherichia coli ETEC Oss (+) Mig (+) "=(Escherichia_coli_ETEC_expr_Mig_up_Oss_up),
-             "Burkholderia pseudomallei Oss (-)"=(Burkholderia_pseudomallei_expr_Oss_down),
-             "Pseudomonas aeruginosa Oss (-)"=(Pseudomonas_aeruginosa_expr_Oss_down)
+             "Achromobacter xylosoxidans Oss (+)" = (Achromobacter_xylosoxidans_expr_Oss_up),
+             "Acinetobacter baumannii Oss (+)" = (Acinetobacter_baumannii_expr_Oss_up),
+             "Aggregatibacter actinomycetemcomitans Oss (+)" = (Aggregatibacter_actinomycetemcomitans_expr_Oss_up),
+             "Borrelia burgdorferi Oss (+)" = (Borrelia_burgdorferi_expr_Oss_up),
+             "Burkholderia pseudomallei Oss (+)" = (Burkholderia_pseudomallei_expr_Oss_up),
+             "Enterococcus faecalis Oss (+)" = (Enterococcus_faecalis_expr_Oss_up),
+             "Escherichia coli EPEC Oss (+)" = (Escherichia_coli_EPEC_expr_Oss_up),
+             "Escherichia coli ETEC Oss (+)" = (Escherichia_coli_ETEC_expr_Oss_up),
+             "Francisella tularensis Oss (+)" = (Francisella_tularensis_expr_Oss_up),
+             "Haemophilus influenzae Oss (+)" = (Haemophilus_influenzae_expr_Oss_up),
+             "Helicobacter pylori G27 Oss (+)" = (Helicobacter_pylori_G27_expr_Oss_up),
+             "Helicobacter pylori J99 Oss (+)" = (Helicobacter_pylori_J99_expr_Oss_up),
+             "Klebsiella pneumoniae Oss (+) (I)" = (Klebsiella_pneumoniae_expr_Oss1_up),
+             "Klebsiella pneumoniae Oss (+) (II)" = (Klebsiella_pneumoniae_expr_Oss2_up),
+             "Klebsiella pneumoniae Oss (+) Tm (+)" = (Klebsiella_pneumoniae_expr_Oss_up_Tm_up),
+             "Listeria monocytogenes Oss (+) Nd (-)" = (Listeria_monocytogenes_expr_Oss_up_Nd_down),
+             "Staphylococcus aureus MRSA252 Oss (+)" = (Staphylococcus_aureus_MRSA252_expr_Oss_up),
+             "Staphylococcus aureus MSSA476 Oss (+) (I)" = (Staphylococcus_aureus_MSSA476_expr_Oss1_up),
+             "Staphylococcus aureus MSSA476 Oss (+) (II)" = (Staphylococcus_aureus_MSSA476_expr_Oss2_up),
+             "Neisseria meningitidis Oss (+)" = (Neisseria_meningitidis_expr_Oss_up),
+             "Pseudomonas aeruginosa Oss (+)" = (Pseudomonas_aeruginosa_expr_Oss_up),
+             "Salmonella enterica Oss (+)" = (Salmonella_enterica_expr_Oss_up),
+             "Shigella flexneri Oss (+) (I)" = (Shigella_flexneri_expr_Oss_up),
+             "Shigella flexneri Oss (+) (II)" = (Shigella_flexneri_expr_Oss2_up),
+             "Shigella flexneri Oss (+) Tm (+)" = (Shigella_flexneri_expr_Oss_up_Tm_up),
+             "Streptococcus pyogenes Oss (+)" = (Streptococcus_pyogenes_expr_Oss_up),
+             "Streptococcus pyogenes Oss (+) Ns (+)" = (Streptococcus_pyogenes_expr_Oss_up_Ns_up),
+             "Streptococcus agalactiae Oss (+)" = (Streptococcus_agalactiae_expr_Oss_up),
+             "Streptococcus agalactiae Oss (+) Nd (-)" = (Streptococcus_agalactiae_expr_Oss_up_Nd_down),
+             "Streptococcus agalactiae Oss (+) Vic (-)" = (Streptococcus_agalactiae_expr_Oss_up_Vic_down),
+             "Escherichia coli UPEC Oss (+)" = (Escherichia_coli_UPEC_expr_Oss_up),
+             "Vibrio cholerae Oss (+)" = (Vibrio_cholerae_expr_Oss_up),
+             "Yersinia pseudotuberculosis Oss (+)" = (Yersinia_pseudotuberculosis_expr_Oss_up),
+             "Escherichia coli EPEC Oss (+) Nd (+)" = (Escherichia_coli_EPEC_expr_Nd_up_Oss_up),
+             "Pseudomonas aeruginosa Oss (+) Nd (+)" = (Pseudomonas_aeruginosa_expr_Nd_up_Oss_up),
+             "Escherichia coli ETEC Oss (+) Mig (+) " = (Escherichia_coli_ETEC_expr_Mig_up_Oss_up),
+             "Burkholderia pseudomallei Oss (-)" = (Burkholderia_pseudomallei_expr_Oss_down),
+             "Pseudomonas aeruginosa Oss (-)" = (Pseudomonas_aeruginosa_expr_Oss_down)
              
              
              
@@ -8060,6 +9049,101 @@ server <-function(input, output,session) {
       box_plot_Oss()
     )
     
+    
+    #####test#####
+    
+    box_plot_Oss_test <- reactive({
+      AcidStress <- datasetInputStimulonOss()
+      if (nrow(AcidStress) == 36 ) {
+        
+        generic_stress_sample_names=c("As_1","As_2","As_3","Bs_1","Bs_2","Bs_3","Ctrl_1","Ctrl_2","Ctrl_3","Li_1","Li_2","Li_3","Mig_1","Mig_2","Mig_3","Nd_1","Nd_2","Nd_3","Ns_1","Ns_2","Ns_3","Oss_1","Oss_2","Oss_3","Oxs_1","Oxs_2","Oxs_3","Sp_1","Sp_2","Sp_3","Tm_1","Tm_2","Tm_3","Vic_1","Vic_2","Vic_3")
+        #Vibrio_expr_1 = scale(Vibrio_expr[,colorh1==which.module ])
+        ME_lengthOfVector=rep(NA, ncol(AcidStress)*36)
+        Module_names <- rep(colnames(AcidStress),36)
+        lengthOfVector_col=ncol(AcidStress)
+        position_ME=1
+        for(i in 1:lengthOfVector_col) {
+          for(j in 1:36) {
+            ME_lengthOfVector[position_ME] <- AcidStress[j,i]
+            Module_names[position_ME] <-      colnames(AcidStress)[i]
+            position_ME = position_ME+1
+          }
+          position_ME = i*36+1
+        }
+        stress=rep(generic_stress_sample_names,ncol(AcidStress))
+        stress_1 <- gsub("_1","", stress)
+        stress_2 <- gsub("_2","", stress_1)
+        stress_3 <- gsub("_3","", stress_2)
+        stress=stress_3
+        
+        ME_Kruskall_dataset = as.data.frame(cbind(ME_lengthOfVector,stress, Module_names))
+        colnames(ME_Kruskall_dataset) <- c("MEigengene", "Stress", "Module_names")
+        #Plot <- ggplot(ME_Kruskall_dataset, aes(x=ME_Kruskall_dataset[,2], y=as.numeric(ME_Kruskall_dataset[,1]), fill = ME_Kruskall_dataset[,2])) +  labs(y="Standard deviation of gene expression", x = "Stress conditions")
+        #Plot + geom_violin( width=1, color="white" ) +geom_boxplot(width = .1, color= "black", alpha = .5) +scale_fill_brewer(palette = "Paired", aesthetics = "fill",guide = "none") +theme_classic(base_size = 16)
+        
+        return(pairwise.wilcox.test(as.numeric(ME_Kruskall_dataset[,1]),ME_Kruskall_dataset[,2],p.adjust.method = "BH"))
+        
+      } 
+      
+      else if (nrow(AcidStress) == 33 ) {
+        
+        generic_stress_sample_names=c("As_1","As_2","As_3","Ctrl_1","Ctrl_2","Ctrl_3","Li_1","Li_2","Li_3","Mig_1","Mig_2","Mig_3","Nd_1","Nd_2","Nd_3","Ns_1","Ns_2","Ns_3","Oss_1","Oss_2","Oss_3","Oxs_1","Oxs_2","Oxs_3","Sp_1","Sp_2","Sp_3","Tm_1","Tm_2","Tm_3","Vic_1","Vic_2","Vic_3")
+        #Vibrio_expr_1 = scale(Vibrio_expr[,colorh1==which.module ])
+        ME_lengthOfVector=rep(NA, ncol(AcidStress)*33)
+        Module_names <- rep(colnames(AcidStress),33)
+        lengthOfVector_col=ncol(AcidStress)
+        position_ME=1
+        for(i in 1:lengthOfVector_col) {
+          for(j in 1:33) {
+            ME_lengthOfVector[position_ME] <- AcidStress[j,i]
+            Module_names[position_ME] <-      colnames(AcidStress)[i]
+            position_ME = position_ME+1
+          }
+          position_ME = i*33+1
+        }
+        stress=rep(generic_stress_sample_names,ncol(AcidStress))
+        stress_1 <- gsub("_1","", stress)
+        stress_2 <- gsub("_2","", stress_1)
+        stress_3 <- gsub("_3","", stress_2)
+        stress=stress_3
+        
+        ME_Kruskall_dataset = as.data.frame(cbind(ME_lengthOfVector,stress, Module_names))
+        colnames(ME_Kruskall_dataset) <- c("MEigengene", "Stress", "Module_names")
+        #Plot <- ggplot(ME_Kruskall_dataset, aes(x=ME_Kruskall_dataset[,2], y=as.numeric(ME_Kruskall_dataset[,1]), fill = ME_Kruskall_dataset[,2])) +  labs(y="Standard deviation of gene expression", x = "Stress conditions")
+        #Plot + geom_violin( width=1, color="white") +geom_boxplot(width = .1, color= "black", alpha = .5) +scale_fill_brewer(palette = "Paired", aesthetics = "fill",guide = "none") +theme_classic(base_size = 16)
+        return(pairwise.wilcox.test(as.numeric(ME_Kruskall_dataset[,1]),ME_Kruskall_dataset[,2],p.adjust.method = "BH"))
+      } 
+      
+      
+      # boxplot(t(AcidStress))
+    })
+    
+    
+    
+    output$mytableOss2 <- renderTable({
+      test_result <- box_plot_Oss_test()
+      
+      # Extract matrix of p-values from the test result
+      pvals_matrix <- test_result$p.value
+      
+      # Convert p-values to asterisks based on significance
+      pvals_matrix[pvals_matrix < 0.001] <- "***"
+      pvals_matrix[pvals_matrix >= 0.001 & pvals_matrix < 0.01] <- "**"
+      pvals_matrix[pvals_matrix >= 0.01 & pvals_matrix < 0.05] <- "*"
+      pvals_matrix[pvals_matrix >= 0.05] <- "ns"
+      
+      # Set the upper triangle values to ""
+      pvals_matrix[upper.tri(pvals_matrix, diag = FALSE)] <- ""
+      
+      # Convert the matrix to a data frame to have row names as an explicit column
+      df <- data.frame(Group = rownames(pvals_matrix), pvals_matrix)
+      
+      df
+      
+    })
+    
+    #####test finish####
+    
     datOss <- reactive({
       dataset_As <- datasetInputStimulonOss()
       
@@ -8094,7 +9178,20 @@ server <-function(input, output,session) {
     
     output$mytableOss <- DT::renderDataTable({datOss()
       
-      return(datatable(datOss(), extensions = 'Buttons',options = list(paging=TRUE, lengthMenu=c(50,100,150), scrollX = FALSE,lengthChange = T, regex= FALSE, searching = TRUE,initComplete = JS(js),dom = 'Bfrtip',buttons = c('copy', 'csv', 'excel')),rownames=FALSE, class = "display") %>% formatStyle(names(datOss()[-1:-3]), backgroundColor = styleInterval(brks, clrs)))
+      return(datatable(datOss(), extensions = 'Buttons',options = list(paging=FALSE, lengthMenu=c(50,100,150), scrollX = FALSE,lengthChange = T, regex= FALSE, searching = TRUE,initComplete = JS(js),dom = 'Bfrtip',buttons = list(
+        list(
+          extend = "copy",
+          filename = "dataset_copy"
+        ),
+        list(
+          extend = "csv",
+          filename = "dataset_csv"
+        ),
+        list(
+          extend = "excel",
+          filename = "dataset_excel"
+        )
+      )),rownames=FALSE, class = "display") %>% formatStyle(names(datOss()[-1:-3]), backgroundColor = styleInterval(brks, clrs)))
       #options = list(paging=FALSE, scrollX = FALSE), 
       #rownames=TRUE, 
       #filter = "top"
@@ -8102,41 +9199,41 @@ server <-function(input, output,session) {
     ############Oxs_stimulon#############
     datasetInputStimulonOxs <- reactive({
       switch(input$select_oxs,
-             "Acinetobacter baumannii Oxs (+)"=(Acinetobacter_baumannii_expr_Oxs_up),
-             "Aggregatibacter actinomycetemcomitans Oxs (+)"=(Aggregatibacter_actinomycetemcomitans_expr_Oxs_up),
-             "Burkholderia pseudomallei Oxs (+)"=(Burkholderia_pseudomallei_expr_Oxs_up),
-             "Campylobacter jejuni Oxs (+) (I)"=(Campylobacter_jejuni_expr_Oxs1_up),
-             "Campylobacter jejuni Oxs (+) (II)"=(Campylobacter_jejuni_expr_Oxs2_up),
-             "Enterococcus faecalis Oxs (+) Vic (-)"=(Enterococcus_faecalis_expr_Oxs_up_Vic_down),
-             "Escherichia coli EPEC Oxs (+) (I)"=(Escherichia_coli_EPEC_expr_Oxs1_up),
-             "Escherichia coli EPEC Oxs (+) (II)"=(Escherichia_coli_EPEC_expr_Oxs2_up),
-             "Escherichia coli ETEC Oxs (+) (I)"=(Escherichia_coli_ETEC_expr_Oxs_up),
-             "Helicobacter pylori G27 Oxs (+)"=(Helicobacter_pylori_G27_expr_Oxs_up),
-             "Helicobacter pylori J99 Oxs (+)"=(Helicobacter_pylori_J99_expr_Oxs_up),
-             "Klebsiella pneumoniae Oxs (+)"=(Klebsiella_pneumoniae_expr_Oxs_up),
-             "Listeria monocytogenes Oxs (+) As (+)"=(Listeria_monocytogenes_expr_Oxs_up_As_up),
-             "Staphylococcus aureus MRSA252 Oxs (+)"=(Staphylococcus_aureus_MRSA252_expr_Oxs_up),
-             "Staphylococcus aureus MRSA252 Oxs (+) Vic (+)"=(Staphylococcus_aureus_MRSA252_expr_Oxs_up_Vic_up),
-             "Staphylococcus aureus MSSA476 Oxs (+)"=(Staphylococcus_aureus_MSSA476_expr_Oxs_up),
-             "Pseudomonas aeruginosa Oxs (+)"=(Pseudomonas_aeruginosa_expr_Oxs_up),
-             "Salmonella enterica Oxs (+)"=(Salmonella_enterica_expr_Oxs_up),
-             "Shigella flexneri Oxs (+)"=(Shigella_flexneri_expr_Oxs_up),
-             "Streptococcus pyogenes Oxs (+) (I)"=(Streptococcus_pyogenes_expr_Oxs_up),
-             "Streptococcus pyogenes Oxs (+) (II)"=(Streptococcus_pyogenes_expr_Oxs2_up),
-             "Escherichia coli UPEC Oxs (+)"=(Escherichia_coli_UPEC_expr_Oxs_up),
-             "Yersinia pseudotuberculosis Oxs (+)"=(Yersinia_pseudotuberculosis_expr_Oxs_up),
-             "Enterococcus faecalis  Oxs (+) Nd (+) Vic(-)"=(Enterococcus_faecalis_Nd_up_Oxs_up_Vic_down),
-             "Klebsiella pneumoniae  Oxs (+) Nd (+)"=(Klebsiella_pneumoniae_expr_Nd_up_Oxs_up),
-             "Salmonella enterica  Oxs (+) Nd (+)"=(Salmonella_enterica_expr_Nd_up_Oxs_up),
-             "Shigella flexneri Oxs (+) Nd (+) "=(Shigella_flexneri_expr_Nd_up_Oxs_up),
-             "Acinetobacter baumannii  Oxs (+) Li (+)"=(Acinetobacter_baumannii_expr_Li_up_Oxs_up),
-             "Salmonella enterica  Oxs (+) Li (+)"=(Salmonella_enterica_expr_Li_up_Oxs_up),
-             "Shigella flexneri  Oxs (+) Li (+)"=(Shigella_flexneri_expr_Li_up_Oxs_up),
-             "Neisseria meningitidis Oxs (-) Tm (+) "=(Neisseria_meningitidis_expr_Tm_up_Oxs_down),
-             "Escherichia coli ETEC Oxs (+) (II)"=(Escherichia_coli_ETEC_expr_Oxs2_up),
-             "Achromobacter xylosoxidans Oxs (-)"=(Achromobacter_xylosoxidans_expr_Oxs_down),
-             "Streptococcus agalactiae Oxs (+) (I)"=(Streptococcus_agalactiae_expr_Oxs_up),
-             "Streptococcus agalactiae Oxs (+) (II)"=(Streptococcus_agalactiae_expr_Oxs2_up)
+             "Acinetobacter baumannii Oxs (+)" = (Acinetobacter_baumannii_expr_Oxs_up),
+             "Aggregatibacter actinomycetemcomitans Oxs (+)" = (Aggregatibacter_actinomycetemcomitans_expr_Oxs_up),
+             "Burkholderia pseudomallei Oxs (+)" = (Burkholderia_pseudomallei_expr_Oxs_up),
+             "Campylobacter jejuni Oxs (+) (I)" = (Campylobacter_jejuni_expr_Oxs1_up),
+             "Campylobacter jejuni Oxs (+) (II)" = (Campylobacter_jejuni_expr_Oxs2_up),
+             "Enterococcus faecalis Oxs (+) Vic (-)" = (Enterococcus_faecalis_expr_Oxs_up_Vic_down),
+             "Escherichia coli EPEC Oxs (+) (I)" = (Escherichia_coli_EPEC_expr_Oxs1_up),
+             "Escherichia coli EPEC Oxs (+) (II)" = (Escherichia_coli_EPEC_expr_Oxs2_up),
+             "Escherichia coli ETEC Oxs (+) (I)" = (Escherichia_coli_ETEC_expr_Oxs_up),
+             "Helicobacter pylori G27 Oxs (+)" = (Helicobacter_pylori_G27_expr_Oxs_up),
+             "Helicobacter pylori J99 Oxs (+)" = (Helicobacter_pylori_J99_expr_Oxs_up),
+             "Klebsiella pneumoniae Oxs (+)" = (Klebsiella_pneumoniae_expr_Oxs_up),
+             "Listeria monocytogenes Oxs (+) As (+)" = (Listeria_monocytogenes_expr_Oxs_up_As_up),
+             "Staphylococcus aureus MRSA252 Oxs (+)" = (Staphylococcus_aureus_MRSA252_expr_Oxs_up),
+             "Staphylococcus aureus MRSA252 Oxs (+) Vic (+)" = (Staphylococcus_aureus_MRSA252_expr_Oxs_up_Vic_up),
+             "Staphylococcus aureus MSSA476 Oxs (+)" = (Staphylococcus_aureus_MSSA476_expr_Oxs_up),
+             "Pseudomonas aeruginosa Oxs (+)" = (Pseudomonas_aeruginosa_expr_Oxs_up),
+             "Salmonella enterica Oxs (+)" = (Salmonella_enterica_expr_Oxs_up),
+             "Shigella flexneri Oxs (+)" = (Shigella_flexneri_expr_Oxs_up),
+             "Streptococcus pyogenes Oxs (+) (I)" = (Streptococcus_pyogenes_expr_Oxs_up),
+             "Streptococcus pyogenes Oxs (+) (II)" = (Streptococcus_pyogenes_expr_Oxs2_up),
+             "Escherichia coli UPEC Oxs (+)" = (Escherichia_coli_UPEC_expr_Oxs_up),
+             "Yersinia pseudotuberculosis Oxs (+)" = (Yersinia_pseudotuberculosis_expr_Oxs_up),
+             "Enterococcus faecalis  Oxs (+) Nd (+) Vic(-)" = (Enterococcus_faecalis_Nd_up_Oxs_up_Vic_down),
+             "Klebsiella pneumoniae  Oxs (+) Nd (+)" = (Klebsiella_pneumoniae_expr_Nd_up_Oxs_up),
+             "Salmonella enterica  Oxs (+) Nd (+)" = (Salmonella_enterica_expr_Nd_up_Oxs_up),
+             "Shigella flexneri Oxs (+) Nd (+) " = (Shigella_flexneri_expr_Nd_up_Oxs_up),
+             "Acinetobacter baumannii  Oxs (+) Li (+)" = (Acinetobacter_baumannii_expr_Li_up_Oxs_up),
+             "Salmonella enterica  Oxs (+) Li (+)" = (Salmonella_enterica_expr_Li_up_Oxs_up),
+             "Shigella flexneri  Oxs (+) Li (+)" = (Shigella_flexneri_expr_Li_up_Oxs_up),
+             "Neisseria meningitidis Oxs (-) Tm (+) " = (Neisseria_meningitidis_expr_Tm_up_Oxs_down),
+             "Escherichia coli ETEC Oxs (+) (II)" = (Escherichia_coli_ETEC_expr_Oxs2_up),
+             "Achromobacter xylosoxidans Oxs (-)" = (Achromobacter_xylosoxidans_expr_Oxs_down),
+             "Streptococcus agalactiae Oxs (+) (I)" = (Streptococcus_agalactiae_expr_Oxs_up),
+             "Streptococcus agalactiae Oxs (+) (II)" = (Streptococcus_agalactiae_expr_Oxs2_up)
              
              
              
@@ -8240,6 +9337,100 @@ server <-function(input, output,session) {
       box_plot_Oxs()
     )
     
+    #######test#####
+    
+    box_plot_Oxs_test <- reactive({
+      AcidStress <- datasetInputStimulonOxs()
+      if (nrow(AcidStress) == 36 ) {
+        
+        generic_stress_sample_names=c("As_1","As_2","As_3","Bs_1","Bs_2","Bs_3","Ctrl_1","Ctrl_2","Ctrl_3","Li_1","Li_2","Li_3","Mig_1","Mig_2","Mig_3","Nd_1","Nd_2","Nd_3","Ns_1","Ns_2","Ns_3","Oss_1","Oss_2","Oss_3","Oxs_1","Oxs_2","Oxs_3","Sp_1","Sp_2","Sp_3","Tm_1","Tm_2","Tm_3","Vic_1","Vic_2","Vic_3")
+        #Vibrio_expr_1 = scale(Vibrio_expr[,colorh1==which.module ])
+        ME_lengthOfVector=rep(NA, ncol(AcidStress)*36)
+        Module_names <- rep(colnames(AcidStress),36)
+        lengthOfVector_col=ncol(AcidStress)
+        position_ME=1
+        for(i in 1:lengthOfVector_col) {
+          for(j in 1:36) {
+            ME_lengthOfVector[position_ME] <- AcidStress[j,i]
+            Module_names[position_ME] <-      colnames(AcidStress)[i]
+            position_ME = position_ME+1
+          }
+          position_ME = i*36+1
+        }
+        stress=rep(generic_stress_sample_names,ncol(AcidStress))
+        stress_1 <- gsub("_1","", stress)
+        stress_2 <- gsub("_2","", stress_1)
+        stress_3 <- gsub("_3","", stress_2)
+        stress=stress_3
+        
+        ME_Kruskall_dataset = as.data.frame(cbind(ME_lengthOfVector,stress, Module_names))
+        colnames(ME_Kruskall_dataset) <- c("MEigengene", "Stress", "Module_names")
+        #Plot <- ggplot(ME_Kruskall_dataset, aes(x=ME_Kruskall_dataset[,2], y=as.numeric(ME_Kruskall_dataset[,1]), fill = ME_Kruskall_dataset[,2])) +  labs(y="Standard deviation of gene expression", x = "Stress conditions")
+        #Plot + geom_violin( width=1, color="white" ) +geom_boxplot(width = .1, color= "black", alpha = .5) +scale_fill_brewer(palette = "Paired", aesthetics = "fill",guide = "none") +theme_classic(base_size = 16)
+        
+        return(pairwise.wilcox.test(as.numeric(ME_Kruskall_dataset[,1]),ME_Kruskall_dataset[,2],p.adjust.method = "BH"))
+        
+      } 
+      
+      else if (nrow(AcidStress) == 33 ) {
+        
+        generic_stress_sample_names=c("As_1","As_2","As_3","Ctrl_1","Ctrl_2","Ctrl_3","Li_1","Li_2","Li_3","Mig_1","Mig_2","Mig_3","Nd_1","Nd_2","Nd_3","Ns_1","Ns_2","Ns_3","Oss_1","Oss_2","Oss_3","Oxs_1","Oxs_2","Oxs_3","Sp_1","Sp_2","Sp_3","Tm_1","Tm_2","Tm_3","Vic_1","Vic_2","Vic_3")
+        #Vibrio_expr_1 = scale(Vibrio_expr[,colorh1==which.module ])
+        ME_lengthOfVector=rep(NA, ncol(AcidStress)*33)
+        Module_names <- rep(colnames(AcidStress),33)
+        lengthOfVector_col=ncol(AcidStress)
+        position_ME=1
+        for(i in 1:lengthOfVector_col) {
+          for(j in 1:33) {
+            ME_lengthOfVector[position_ME] <- AcidStress[j,i]
+            Module_names[position_ME] <-      colnames(AcidStress)[i]
+            position_ME = position_ME+1
+          }
+          position_ME = i*33+1
+        }
+        stress=rep(generic_stress_sample_names,ncol(AcidStress))
+        stress_1 <- gsub("_1","", stress)
+        stress_2 <- gsub("_2","", stress_1)
+        stress_3 <- gsub("_3","", stress_2)
+        stress=stress_3
+        
+        ME_Kruskall_dataset = as.data.frame(cbind(ME_lengthOfVector,stress, Module_names))
+        colnames(ME_Kruskall_dataset) <- c("MEigengene", "Stress", "Module_names")
+        #Plot <- ggplot(ME_Kruskall_dataset, aes(x=ME_Kruskall_dataset[,2], y=as.numeric(ME_Kruskall_dataset[,1]), fill = ME_Kruskall_dataset[,2])) +  labs(y="Standard deviation of gene expression", x = "Stress conditions")
+        #Plot + geom_violin( width=1, color="white") +geom_boxplot(width = .1, color= "black", alpha = .5) +scale_fill_brewer(palette = "Paired", aesthetics = "fill",guide = "none") +theme_classic(base_size = 16)
+        return(pairwise.wilcox.test(as.numeric(ME_Kruskall_dataset[,1]),ME_Kruskall_dataset[,2],p.adjust.method = "BH"))
+      } 
+      
+      
+      # boxplot(t(AcidStress))
+    })
+    
+    
+    
+    output$mytableOxs2 <- renderTable({
+      test_result <- box_plot_Oxs_test()
+      
+      # Extract matrix of p-values from the test result
+      pvals_matrix <- test_result$p.value
+      
+      # Convert p-values to asterisks based on significance
+      pvals_matrix[pvals_matrix < 0.001] <- "***"
+      pvals_matrix[pvals_matrix >= 0.001 & pvals_matrix < 0.01] <- "**"
+      pvals_matrix[pvals_matrix >= 0.01 & pvals_matrix < 0.05] <- "*"
+      pvals_matrix[pvals_matrix >= 0.05] <- "ns"
+      
+      # Set the upper triangle values to ""
+      pvals_matrix[upper.tri(pvals_matrix, diag = FALSE)] <- ""
+      
+      # Convert the matrix to a data frame to have row names as an explicit column
+      df <- data.frame(Group = rownames(pvals_matrix), pvals_matrix)
+      
+      df
+      
+    })
+    
+    ######test finish########
+    
     datOxs <- reactive({
       dataset_As <- datasetInputStimulonOxs()
       
@@ -8274,7 +9465,20 @@ server <-function(input, output,session) {
     
     output$mytableOxs <- DT::renderDataTable({datOxs()
       
-      return(datatable(datOxs(), extensions = 'Buttons',options = list(paging=TRUE, lengthMenu=c(50,100,150), scrollX = FALSE,lengthChange = T, regex= FALSE, searching = TRUE,initComplete = JS(js),dom = 'Bfrtip',buttons = c('copy', 'csv', 'excel')),rownames=FALSE, class = "display") %>% formatStyle(names(datOxs()[-1:-3]), backgroundColor = styleInterval(brks, clrs)))
+      return(datatable(datOxs(), extensions = 'Buttons',options = list(paging=FALSE, lengthMenu=c(50,100,150), scrollX = FALSE,lengthChange = T, regex= FALSE, searching = TRUE,initComplete = JS(js),dom = 'Bfrtip',buttons = list(
+        list(
+          extend = "copy",
+          filename = "dataset_copy"
+        ),
+        list(
+          extend = "csv",
+          filename = "dataset_csv"
+        ),
+        list(
+          extend = "excel",
+          filename = "dataset_excel"
+        )
+      )),rownames=FALSE, class = "display") %>% formatStyle(names(datOxs()[-1:-3]), backgroundColor = styleInterval(brks, clrs)))
       #options = list(paging=FALSE, scrollX = FALSE), 
       #rownames=TRUE, 
       #filter = "top"
@@ -8282,47 +9486,47 @@ server <-function(input, output,session) {
     ############Tm_stimulon#############
     datasetInputStimulonTm <- reactive({
       switch(input$select_tm,
-             "Achromobacter xylosoxidans Tm (+) (I)"=(Achromobacter_xylosoxidans_expr_Tm1_up),
-             "Achromobacter xylosoxidans Tm (+) (II)"=(Achromobacter_xylosoxidans_expr_Tm2_up),
-             "Achromobacter xylosoxidans Tm (+) (III)"=(Achromobacter_xylosoxidans_expr_Tm3_up),
-             "Aggregatibacter actinomycetemcomitans Tm (+)"=(Aggregatibacter_actinomycetemcomitans_expr_Tm_up),
-             "Borrelia burgdorferi Tm (+)"=(Borrelia_burgdorferi_expr_Tm_up),
-             "Burkholderia pseudomallei Tm (+)"=(Burkholderia_pseudomallei_expr_Tm_up),
-             "Enterococcus faecalis Tm (+)"=(Enterococcus_faecalis_expr_Tm_up),
-             "Escherichia coli EPEC Tm (+)"=(Escherichia_coli_EPEC_expr_Tm_up),
-             "Escherichia coli ETEC Tm (+)"=(Escherichia_coli_ETEC_expr_Tm_up),
-             "Escherichia coli ETEC Tm (+) Li (+)"=(Escherichia_coli_ETEC_expr_Tm_up_Li_up),
-             "Francisella tularensis Tm (+)"=(Francisella_tularensis_expr_Tm_up),
-             "Haemophilus influenzae Tm (+) (I)"=(Haemophilus_influenzae_expr_Tm1_up),
-             "Haemophilus influenzae Tm (+) (II)"=(Haemophilus_influenzae_expr_Tm2_up),
-             "Klebsiella pneumoniae Tm (+)"=(Klebsiella_pneumoniae_expr_Tm_up),
-             "Listeria monocytogenes Tm (+) (I)"=(Listeria_monocytogenes_expr_Tm1_up),
-             "Listeria monocytogenes Tm (+) (II)"=(Listeria_monocytogenes_expr_Tm2_up),
-             "Staphylococcus aureus MRSA252 Tm (+)"=(Staphylococcus_aureus_MRSA252_expr_Tm_up),
-             "Staphylococcus aureus MSSA476 Tm (+)"=(Staphylococcus_aureus_MSSA476_expr_Tm_up),
-             "Neisseria meningitidis Tm (+)"=(Neisseria_meningitidis_expr_Tm_up),
-             "Neisseria meningitidis Tm (+) Oxs (-)"=(Neisseria_meningitidis_expr_Tm_up_Oxs_down),
-             "Salmonella enterica Tm (+)"=(Salmonella_enterica_expr_Tm_up),
-             "Staphylococcus epidermidis Tm (+)"=(Staphylococcus_epidermidis_expr_Tm_up),
-             "Staphylococcus epidermidis Tm (-)"=(Staphylococcus_epidermidis_expr_Tm_down),
-             "Shigella flexneri Tm (+)"=(Shigella_flexneri_expr_Tm_up),
-             "Streptococcus pyogenes Tm (+) Nd (+)"=(Streptococcus_agalactiae_expr_Tm_up_Nd_down),
-             "Streptococcus agalactiae Tm (+)"=(Streptococcus_agalactiae_expr_Tm_up),
-             "Streptococcus agalactiae Tm (+) Nd (-)"=(Streptococcus_agalactiae_expr_Tm_up_Nd_down),
-             "Streptococcus pneumoniae Tm (+) Vic (+)"=(Streptococcus_pneumoniae_expr_Tm_up_Vic_up),
-             "Escherichia coli UPEC Tm (+)"=(Escherichia_coli_UPEC_expr_Tm_up),
-             "Vibrio cholerae Tm (+)"=(Vibrio_cholerae_expr_Tm_up),
-             "Yersinia pseudotuberculosis Tm (+)"=(Yersinia_pseudotuberculosis_expr_Tm_up),
-             "Pseudomonas aeruginosa Tm (+) As (+)"=(Pseudomonas_aeruginosa_expr_As_Tm),
-             "Burkholderia pseudomallei Tm (+) Sp (+)"=(Burkholderia_pseudomallei_expr_Sp_Tm),
-             "Staphylococcus epidermidis Tm (+) Sp (+)"=(Staphylococcus_epidermidis_expr_Sp_up_Tm_up),
-             "Staphylococcus epidermidis Tm (-) Nd (+)"=(Staphylococcus_epidermidis_expr_Nd_up_Tm_down),
-             "Staphylococcus epidermidis Tm (-) Mig (+) "=(Staphylococcus_epidermidis_expr_Mig_up_Tm_down),
-             "Staphylococcus epidermidis Tm (-) Ns (+) "=(Staphylococcus_epidermidis_expr_Ns_up_Tm_down),
-             "Klebsiella pneumoniae  Tm (+) Oss (+)"=(Klebsiella_pneumoniae_expr_Oss_up_Tm_up),
-             "Shigella flexneri Tm (+) Oss (+) " =(Shigella_flexneri_expr_Oss_up_Tm_up),
-             "Shigella flexneri Tm (+) Vic (+) "=(Shigella_flexneri_expr_Vic_up_Tm_up),
-             "Staphylococcus epidermidis Tm (-) As (+)"=(Staphylococcus_epidermidis_expr_As_up_Tm_down)
+             "Achromobacter xylosoxidans Tm (+) (I)" = (Achromobacter_xylosoxidans_expr_Tm1_up),
+             "Achromobacter xylosoxidans Tm (+) (II)" = (Achromobacter_xylosoxidans_expr_Tm2_up),
+             "Achromobacter xylosoxidans Tm (+) (III)" = (Achromobacter_xylosoxidans_expr_Tm3_up),
+             "Aggregatibacter actinomycetemcomitans Tm (+)" = (Aggregatibacter_actinomycetemcomitans_expr_Tm_up),
+             "Borrelia burgdorferi Tm (+)" = (Borrelia_burgdorferi_expr_Tm_up),
+             "Burkholderia pseudomallei Tm (+)" = (Burkholderia_pseudomallei_expr_Tm_up),
+             "Enterococcus faecalis Tm (+)" = (Enterococcus_faecalis_expr_Tm_up),
+             "Escherichia coli EPEC Tm (+)" = (Escherichia_coli_EPEC_expr_Tm_up),
+             "Escherichia coli ETEC Tm (+)" = (Escherichia_coli_ETEC_expr_Tm_up),
+             "Escherichia coli ETEC Tm (+) Li (+)" = (Escherichia_coli_ETEC_expr_Tm_up_Li_up),
+             "Francisella tularensis Tm (+)" = (Francisella_tularensis_expr_Tm_up),
+             "Haemophilus influenzae Tm (+) (I)" = (Haemophilus_influenzae_expr_Tm1_up),
+             "Haemophilus influenzae Tm (+) (II)" = (Haemophilus_influenzae_expr_Tm2_up),
+             "Klebsiella pneumoniae Tm (+)" = (Klebsiella_pneumoniae_expr_Tm_up),
+             "Listeria monocytogenes Tm (+) (I)" = (Listeria_monocytogenes_expr_Tm1_up),
+             "Listeria monocytogenes Tm (+) (II)" = (Listeria_monocytogenes_expr_Tm2_up),
+             "Staphylococcus aureus MRSA252 Tm (+)" = (Staphylococcus_aureus_MRSA252_expr_Tm_up),
+             "Staphylococcus aureus MSSA476 Tm (+)" = (Staphylococcus_aureus_MSSA476_expr_Tm_up),
+             "Neisseria meningitidis Tm (+)" = (Neisseria_meningitidis_expr_Tm_up),
+             "Neisseria meningitidis Tm (+) Oxs (-)" = (Neisseria_meningitidis_expr_Tm_up_Oxs_down),
+             "Salmonella enterica Tm (+)" = (Salmonella_enterica_expr_Tm_up),
+             "Staphylococcus epidermidis Tm (+)" = (Staphylococcus_epidermidis_expr_Tm_up),
+             "Staphylococcus epidermidis Tm (-)" = (Staphylococcus_epidermidis_expr_Tm_down),
+             "Shigella flexneri Tm (+)" = (Shigella_flexneri_expr_Tm_up),
+             "Streptococcus pyogenes Tm (+) Nd (+)" = (Streptococcus_agalactiae_expr_Tm_up_Nd_down),
+             "Streptococcus agalactiae Tm (+)" = (Streptococcus_agalactiae_expr_Tm_up),
+             "Streptococcus agalactiae Tm (+) Nd (-)" = (Streptococcus_agalactiae_expr_Tm_up_Nd_down),
+             "Streptococcus pneumoniae Tm (+) Vic (+)" = (Streptococcus_pneumoniae_expr_Tm_up_Vic_up),
+             "Escherichia coli UPEC Tm (+)" = (Escherichia_coli_UPEC_expr_Tm_up),
+             "Vibrio cholerae Tm (+)" = (Vibrio_cholerae_expr_Tm_up),
+             "Yersinia pseudotuberculosis Tm (+)" = (Yersinia_pseudotuberculosis_expr_Tm_up),
+             "Pseudomonas aeruginosa Tm (+) As (+)" = (Pseudomonas_aeruginosa_expr_As_Tm),
+             "Burkholderia pseudomallei Tm (+) Sp (+)" = (Burkholderia_pseudomallei_expr_Sp_Tm),
+             "Staphylococcus epidermidis Tm (+) Sp (+)" = (Staphylococcus_epidermidis_expr_Sp_up_Tm_up),
+             "Staphylococcus epidermidis Tm (-) Nd (+)" = (Staphylococcus_epidermidis_expr_Nd_up_Tm_down),
+             "Staphylococcus epidermidis Tm (-) Mig (+) " = (Staphylococcus_epidermidis_expr_Mig_up_Tm_down),
+             "Staphylococcus epidermidis Tm (-) Ns (+) " = (Staphylococcus_epidermidis_expr_Ns_up_Tm_down),
+             "Klebsiella pneumoniae  Tm (+) Oss (+)" = (Klebsiella_pneumoniae_expr_Oss_up_Tm_up),
+             "Shigella flexneri Tm (+) Oss (+) " = (Shigella_flexneri_expr_Oss_up_Tm_up),
+             "Shigella flexneri Tm (+) Vic (+) " = (Shigella_flexneri_expr_Vic_up_Tm_up),
+             "Staphylococcus epidermidis Tm (-) As (+)" = (Staphylococcus_epidermidis_expr_As_up_Tm_down)
              
       )
     })      
@@ -8420,6 +9624,99 @@ server <-function(input, output,session) {
       
       box_plot_Tm()
     )
+    #####test#####
+    
+    box_plot_Tm_test <- reactive({
+      AcidStress <- datasetInputStimulonTm()
+      if (nrow(AcidStress) == 36 ) {
+        
+        generic_stress_sample_names=c("As_1","As_2","As_3","Bs_1","Bs_2","Bs_3","Ctrl_1","Ctrl_2","Ctrl_3","Li_1","Li_2","Li_3","Mig_1","Mig_2","Mig_3","Nd_1","Nd_2","Nd_3","Ns_1","Ns_2","Ns_3","Oss_1","Oss_2","Oss_3","Oxs_1","Oxs_2","Oxs_3","Sp_1","Sp_2","Sp_3","Tm_1","Tm_2","Tm_3","Vic_1","Vic_2","Vic_3")
+        #Vibrio_expr_1 = scale(Vibrio_expr[,colorh1==which.module ])
+        ME_lengthOfVector=rep(NA, ncol(AcidStress)*36)
+        Module_names <- rep(colnames(AcidStress),36)
+        lengthOfVector_col=ncol(AcidStress)
+        position_ME=1
+        for(i in 1:lengthOfVector_col) {
+          for(j in 1:36) {
+            ME_lengthOfVector[position_ME] <- AcidStress[j,i]
+            Module_names[position_ME] <-      colnames(AcidStress)[i]
+            position_ME = position_ME+1
+          }
+          position_ME = i*36+1
+        }
+        stress=rep(generic_stress_sample_names,ncol(AcidStress))
+        stress_1 <- gsub("_1","", stress)
+        stress_2 <- gsub("_2","", stress_1)
+        stress_3 <- gsub("_3","", stress_2)
+        stress=stress_3
+        
+        ME_Kruskall_dataset = as.data.frame(cbind(ME_lengthOfVector,stress, Module_names))
+        colnames(ME_Kruskall_dataset) <- c("MEigengene", "Stress", "Module_names")
+        #Plot <- ggplot(ME_Kruskall_dataset, aes(x=ME_Kruskall_dataset[,2], y=as.numeric(ME_Kruskall_dataset[,1]), fill = ME_Kruskall_dataset[,2])) +  labs(y="Standard deviation of gene expression", x = "Stress conditions")
+        #Plot + geom_violin( width=1, color="white" ) +geom_boxplot(width = .1, color= "black", alpha = .5) +scale_fill_brewer(palette = "Paired", aesthetics = "fill",guide = "none") +theme_classic(base_size = 16)
+        
+        return(pairwise.wilcox.test(as.numeric(ME_Kruskall_dataset[,1]),ME_Kruskall_dataset[,2],p.adjust.method = "BH"))
+        
+      } 
+      
+      else if (nrow(AcidStress) == 33 ) {
+        
+        generic_stress_sample_names=c("As_1","As_2","As_3","Ctrl_1","Ctrl_2","Ctrl_3","Li_1","Li_2","Li_3","Mig_1","Mig_2","Mig_3","Nd_1","Nd_2","Nd_3","Ns_1","Ns_2","Ns_3","Oss_1","Oss_2","Oss_3","Oxs_1","Oxs_2","Oxs_3","Sp_1","Sp_2","Sp_3","Tm_1","Tm_2","Tm_3","Vic_1","Vic_2","Vic_3")
+        #Vibrio_expr_1 = scale(Vibrio_expr[,colorh1==which.module ])
+        ME_lengthOfVector=rep(NA, ncol(AcidStress)*33)
+        Module_names <- rep(colnames(AcidStress),33)
+        lengthOfVector_col=ncol(AcidStress)
+        position_ME=1
+        for(i in 1:lengthOfVector_col) {
+          for(j in 1:33) {
+            ME_lengthOfVector[position_ME] <- AcidStress[j,i]
+            Module_names[position_ME] <-      colnames(AcidStress)[i]
+            position_ME = position_ME+1
+          }
+          position_ME = i*33+1
+        }
+        stress=rep(generic_stress_sample_names,ncol(AcidStress))
+        stress_1 <- gsub("_1","", stress)
+        stress_2 <- gsub("_2","", stress_1)
+        stress_3 <- gsub("_3","", stress_2)
+        stress=stress_3
+        
+        ME_Kruskall_dataset = as.data.frame(cbind(ME_lengthOfVector,stress, Module_names))
+        colnames(ME_Kruskall_dataset) <- c("MEigengene", "Stress", "Module_names")
+        #Plot <- ggplot(ME_Kruskall_dataset, aes(x=ME_Kruskall_dataset[,2], y=as.numeric(ME_Kruskall_dataset[,1]), fill = ME_Kruskall_dataset[,2])) +  labs(y="Standard deviation of gene expression", x = "Stress conditions")
+        #Plot + geom_violin( width=1, color="white") +geom_boxplot(width = .1, color= "black", alpha = .5) +scale_fill_brewer(palette = "Paired", aesthetics = "fill",guide = "none") +theme_classic(base_size = 16)
+        return(pairwise.wilcox.test(as.numeric(ME_Kruskall_dataset[,1]),ME_Kruskall_dataset[,2],p.adjust.method = "BH"))
+      } 
+      
+      
+      # boxplot(t(AcidStress))
+    })
+    
+    
+    
+    output$mytableTm2 <- renderTable({
+      test_result <- box_plot_Tm_test()
+      
+      # Extract matrix of p-values from the test result
+      pvals_matrix <- test_result$p.value
+      
+      # Convert p-values to asterisks based on significance
+      pvals_matrix[pvals_matrix < 0.001] <- "***"
+      pvals_matrix[pvals_matrix >= 0.001 & pvals_matrix < 0.01] <- "**"
+      pvals_matrix[pvals_matrix >= 0.01 & pvals_matrix < 0.05] <- "*"
+      pvals_matrix[pvals_matrix >= 0.05] <- "ns"
+      
+      # Set the upper triangle values to ""
+      pvals_matrix[upper.tri(pvals_matrix, diag = FALSE)] <- ""
+      
+      # Convert the matrix to a data frame to have row names as an explicit column
+      df <- data.frame(Group = rownames(pvals_matrix), pvals_matrix)
+      
+      df
+      
+    })
+    
+    #####test finnish####
     
     datTm <- reactive({
       dataset_As <- datasetInputStimulonTm()
@@ -8455,7 +9752,20 @@ server <-function(input, output,session) {
     
     output$mytableTm <- DT::renderDataTable({datTm()
       
-      return(datatable(datTm(), extensions = 'Buttons',options = list(paging=TRUE, lengthMenu=c(50,100,150), scrollX = FALSE,lengthChange = T, regex= FALSE, searching = TRUE,initComplete = JS(js),dom = 'Bfrtip',buttons = c('copy', 'csv', 'excel')),rownames=FALSE, class = "display") %>% formatStyle(names(datTm()[-1:-3]), backgroundColor = styleInterval(brks, clrs)))
+      return(datatable(datTm(), extensions = 'Buttons',options = list(paging=FALSE, lengthMenu=c(50,100,150), scrollX = FALSE,lengthChange = T, regex= FALSE, searching = TRUE,initComplete = JS(js),dom = 'Bfrtip',buttons = list(
+        list(
+          extend = "copy",
+          filename = "dataset_copy"
+        ),
+        list(
+          extend = "csv",
+          filename = "dataset_csv"
+        ),
+        list(
+          extend = "excel",
+          filename = "dataset_excel"
+        )
+      )),rownames=FALSE, class = "display") %>% formatStyle(names(datTm()[-1:-3]), backgroundColor = styleInterval(brks, clrs)))
       #options = list(paging=FALSE, scrollX = FALSE), 
       #rownames=TRUE, 
       #filter = "top"
@@ -8463,43 +9773,43 @@ server <-function(input, output,session) {
     ############Vic_stimulon#############
     datasetInputStimulonVic <- reactive({
       switch(input$select_vic,
-             "Aggregatibacter actinomycetemcomitans Vic (+) (I)"=(Aggregatibacter_actinomycetemcomitans_expr_Vic1_up),
-             "Aggregatibacter actinomycetemcomitans Vic (+) (II)"=(Aggregatibacter_actinomycetemcomitans_expr_Vic2_up),
-             "Aggregatibacter actinomycetemcomitans Vic (+) (III)"=(Aggregatibacter_actinomycetemcomitans_expr_Vic3_up),
-             "Burkholderia pseudomallei Vic (+)"=(Burkholderia_pseudomallei_expr_Vic_up),
-             "Escherichia coli EPEC Vic (+)"=(Escherichia_coli_EPEC_expr_Vic_up),
-             "Escherichia coli ETEC Vic (+) (I)"=(Escherichia_coli_ETEC_expr_Vic1_up),
-             "Escherichia coli ETEC Vic (+) (II)"=(Escherichia_coli_ETEC_expr_Vic2_up),
-             "Haemophilus influenzae Vic (+)"=(Haemophilus_influenzae_expr_Vic_up),
-             "Haemophilus influenzae Vic (+) Mig (-)"=(Haemophilus_influenzae_expr_Vic_up_Mig_down),
-             "Helicobacter pylori J99 Vic (+)"=(Helicobacter_pylori_J99_expr_Vic_up),
-             "Klebsiella pneumoniae Vic (+)"=(Klebsiella_pneumoniae_expr_Vic_up),
-             "Staphylococcus aureus MRSA252 Vic (+)"=(Staphylococcus_aureus_MRSA252_expr_Vic_up),
-             "Staphylococcus aureus MSSA476 Vic (+)"=(Staphylococcus_aureus_MSSA476_expr_Vic_up),
-             "Pseudomonas aeruginosa Vic (+)"=(Pseudomonas_aeruginosa_expr_Vic_up),
-             "Salmonella enterica Vic (+)"=(Salmonella_enterica_expr_Vic_up),
-             "Shigella flexneri Vic (+) (I)"=(Shigella_flexneri_expr_Vic1_up),
-             "Shigella flexneri Vic (+) (II)"=(Shigella_flexneri_expr_Vic2_up),
-             "Shigella flexneri Vic (+) Tm (+)"=(Shigella_flexneri_expr_Vic_up_Tm_up),
-             "Streptococcus agalactiae Vic (+) Nd (-)"=(Streptococcus_agalactiae_expr_Vic_up_Nd_down),
-             "Streptococcus pneumoniae Vic (+) Mig (-)"=(Streptococcus_pneumoniae_expr_Vic_up_Mig_down),
-             "Yersinia pseudotuberculosis Vic (+) (I)"=(Yersinia_pseudotuberculosis_expr_Vic1_up),
-             "Yersinia pseudotuberculosis Vic (+) (II)"=(Yersinia_pseudotuberculosis_expr_Vic2_up),
-             "Yersinia pseudotuberculosis Vic (+) Mig (-)"=(Yersinia_pseudotuberculosis_expr_Vic_up_Mig_down),
-             "Listeria monocytogenes Vic (+) Sp (+)"=(Listeria_monocytogenes_expr_Sp_Vic_up),
-             "Yersinia pseudotuberculosis Vic (-) Nd (+)"=(Yersinia_pseudotuberculosis_expr_Nd_up_Vic_down),
-             "Enterococcus faecalis Vic(-) Nd (+) Oxs (+)"=(Enterococcus_faecalis_expr_Nd_up_Oxs_up_Vic_down),
-             "Enterococcus faecalis  Vic (+) Mig (+)"=(Enterococcus_faecalis_expr_Mig_up_Vic_up),
-             "Haemophilus influenzae  Vic (+) Mig (+)"=(Haemophilus_influenzae_expr_Mig_up_Vic_up),
-             "Escherichia coli UPEC  Vic (+) Mig (+)"=(Escherichia_coli_UPEC_expr_Mig_up_Vic_up),
-             "Streptococcus agalactiae Vic (-) Oss (+) "=(Streptococcus_agalactiae_expr_Oss_up_Vic_down),
-             "Enterococcus faecalis Vic (-) Oxs (+) "=(Enterococcus_faecalis_expr_Oxs_up_Vic_down),
-             "Staphylococcus aureus MRSA252 Vic (+) Oxs (+) "=(Staphylococcus_aureus_MRSA252_expr_Oxs_up_Vic_up),
-             "Streptococcus pneumoniae Vic (+) Tm (+) "=(Streptococcus_pneumoniae_expr_Tm_up_Vic_up),
-             "Streptococcus pyogenes Vic (-)"=(Streptococcus_pyogenes_expr_Vic_down),
-             "Vibrio cholerae Vic (+)"=(Vibrio_cholerae_expr_Vic_up),
+             "Aggregatibacter actinomycetemcomitans Vic (+) (I)" = (Aggregatibacter_actinomycetemcomitans_expr_Vic1_up),
+             "Aggregatibacter actinomycetemcomitans Vic (+) (II)" = (Aggregatibacter_actinomycetemcomitans_expr_Vic2_up),
+             "Aggregatibacter actinomycetemcomitans Vic (+) (III)" = (Aggregatibacter_actinomycetemcomitans_expr_Vic3_up),
+             "Burkholderia pseudomallei Vic (+)" = (Burkholderia_pseudomallei_expr_Vic_up),
+             "Escherichia coli EPEC Vic (+)" = (Escherichia_coli_EPEC_expr_Vic_up),
+             "Escherichia coli ETEC Vic (+) (I)" = (Escherichia_coli_ETEC_expr_Vic1_up),
+             "Escherichia coli ETEC Vic (+) (II)" = (Escherichia_coli_ETEC_expr_Vic2_up),
+             "Haemophilus influenzae Vic (+)" = (Haemophilus_influenzae_expr_Vic_up),
+             "Haemophilus influenzae Vic (+) Mig (-)" = (Haemophilus_influenzae_expr_Vic_up_Mig_down),
+             "Helicobacter pylori J99 Vic (+)" = (Helicobacter_pylori_J99_expr_Vic_up),
+             "Klebsiella pneumoniae Vic (+)" = (Klebsiella_pneumoniae_expr_Vic_up),
+             "Staphylococcus aureus MRSA252 Vic (+)" = (Staphylococcus_aureus_MRSA252_expr_Vic_up),
+             "Staphylococcus aureus MSSA476 Vic (+)" = (Staphylococcus_aureus_MSSA476_expr_Vic_up),
+             "Pseudomonas aeruginosa Vic (+)" = (Pseudomonas_aeruginosa_expr_Vic_up),
+             "Salmonella enterica Vic (+)" = (Salmonella_enterica_expr_Vic_up),
+             "Shigella flexneri Vic (+) (I)" = (Shigella_flexneri_expr_Vic1_up),
+             "Shigella flexneri Vic (+) (II)" = (Shigella_flexneri_expr_Vic2_up),
+             "Shigella flexneri Vic (+) Tm (+)" = (Shigella_flexneri_expr_Vic_up_Tm_up),
+             "Streptococcus agalactiae Vic (+) Nd (-)" = (Streptococcus_agalactiae_expr_Vic_up_Nd_down),
+             "Streptococcus pneumoniae Vic (+) Mig (-)" = (Streptococcus_pneumoniae_expr_Vic_up_Mig_down),
+             "Yersinia pseudotuberculosis Vic (+) (I)" = (Yersinia_pseudotuberculosis_expr_Vic1_up),
+             "Yersinia pseudotuberculosis Vic (+) (II)" = (Yersinia_pseudotuberculosis_expr_Vic2_up),
+             "Yersinia pseudotuberculosis Vic (+) Mig (-)" = (Yersinia_pseudotuberculosis_expr_Vic_up_Mig_down),
+             "Listeria monocytogenes Vic (+) Sp (+)" = (Listeria_monocytogenes_expr_Sp_Vic_up),
+             "Yersinia pseudotuberculosis Vic (-) Nd (+)" = (Yersinia_pseudotuberculosis_expr_Nd_up_Vic_down),
+             "Enterococcus faecalis Vic(-) Nd (+) Oxs (+)" = (Enterococcus_faecalis_expr_Nd_up_Oxs_up_Vic_down),
+             "Enterococcus faecalis  Vic (+) Mig (+)" = (Enterococcus_faecalis_expr_Mig_up_Vic_up),
+             "Haemophilus influenzae  Vic (+) Mig (+)" = (Haemophilus_influenzae_expr_Mig_up_Vic_up),
+             "Escherichia coli UPEC  Vic (+) Mig (+)" = (Escherichia_coli_UPEC_expr_Mig_up_Vic_up),
+             "Streptococcus agalactiae Vic (-) Oss (+) " = (Streptococcus_agalactiae_expr_Oss_up_Vic_down),
+             "Enterococcus faecalis Vic (-) Oxs (+) " = (Enterococcus_faecalis_expr_Oxs_up_Vic_down),
+             "Staphylococcus aureus MRSA252 Vic (+) Oxs (+) " = (Staphylococcus_aureus_MRSA252_expr_Oxs_up_Vic_up),
+             "Streptococcus pneumoniae Vic (+) Tm (+) " = (Streptococcus_pneumoniae_expr_Tm_up_Vic_up),
+             "Streptococcus pyogenes Vic (-)" = (Streptococcus_pyogenes_expr_Vic_down),
+             "Vibrio cholerae Vic (+)" = (Vibrio_cholerae_expr_Vic_up),
              
-             "Streptococcus pneumoniae Vic (-)"=(Streptococcus_pyogenes_expr_Vic_down)
+             "Streptococcus pneumoniae Vic (-)" = (Streptococcus_pyogenes_expr_Vic_down)
              
              
              
@@ -8602,6 +9912,101 @@ server <-function(input, output,session) {
       box_plot_Vic()
     )
     
+    #####test####
+    
+    
+    box_plot_Vic_test <- reactive({
+      AcidStress <- datasetInputStimulonVic()
+      if (nrow(AcidStress) == 36 ) {
+        
+        generic_stress_sample_names=c("As_1","As_2","As_3","Bs_1","Bs_2","Bs_3","Ctrl_1","Ctrl_2","Ctrl_3","Li_1","Li_2","Li_3","Mig_1","Mig_2","Mig_3","Nd_1","Nd_2","Nd_3","Ns_1","Ns_2","Ns_3","Oss_1","Oss_2","Oss_3","Oxs_1","Oxs_2","Oxs_3","Sp_1","Sp_2","Sp_3","Tm_1","Tm_2","Tm_3","Vic_1","Vic_2","Vic_3")
+        #Vibrio_expr_1 = scale(Vibrio_expr[,colorh1==which.module ])
+        ME_lengthOfVector=rep(NA, ncol(AcidStress)*36)
+        Module_names <- rep(colnames(AcidStress),36)
+        lengthOfVector_col=ncol(AcidStress)
+        position_ME=1
+        for(i in 1:lengthOfVector_col) {
+          for(j in 1:36) {
+            ME_lengthOfVector[position_ME] <- AcidStress[j,i]
+            Module_names[position_ME] <-      colnames(AcidStress)[i]
+            position_ME = position_ME+1
+          }
+          position_ME = i*36+1
+        }
+        stress=rep(generic_stress_sample_names,ncol(AcidStress))
+        stress_1 <- gsub("_1","", stress)
+        stress_2 <- gsub("_2","", stress_1)
+        stress_3 <- gsub("_3","", stress_2)
+        stress=stress_3
+        
+        ME_Kruskall_dataset = as.data.frame(cbind(ME_lengthOfVector,stress, Module_names))
+        colnames(ME_Kruskall_dataset) <- c("MEigengene", "Stress", "Module_names")
+        #Plot <- ggplot(ME_Kruskall_dataset, aes(x=ME_Kruskall_dataset[,2], y=as.numeric(ME_Kruskall_dataset[,1]), fill = ME_Kruskall_dataset[,2])) +  labs(y="Standard deviation of gene expression", x = "Stress conditions")
+        #Plot + geom_violin( width=1, color="white" ) +geom_boxplot(width = .1, color= "black", alpha = .5) +scale_fill_brewer(palette = "Paired", aesthetics = "fill",guide = "none") +theme_classic(base_size = 16)
+        
+        return(pairwise.wilcox.test(as.numeric(ME_Kruskall_dataset[,1]),ME_Kruskall_dataset[,2],p.adjust.method = "BH"))
+        
+      } 
+      
+      else if (nrow(AcidStress) == 33 ) {
+        
+        generic_stress_sample_names=c("As_1","As_2","As_3","Ctrl_1","Ctrl_2","Ctrl_3","Li_1","Li_2","Li_3","Mig_1","Mig_2","Mig_3","Nd_1","Nd_2","Nd_3","Ns_1","Ns_2","Ns_3","Oss_1","Oss_2","Oss_3","Oxs_1","Oxs_2","Oxs_3","Sp_1","Sp_2","Sp_3","Tm_1","Tm_2","Tm_3","Vic_1","Vic_2","Vic_3")
+        #Vibrio_expr_1 = scale(Vibrio_expr[,colorh1==which.module ])
+        ME_lengthOfVector=rep(NA, ncol(AcidStress)*33)
+        Module_names <- rep(colnames(AcidStress),33)
+        lengthOfVector_col=ncol(AcidStress)
+        position_ME=1
+        for(i in 1:lengthOfVector_col) {
+          for(j in 1:33) {
+            ME_lengthOfVector[position_ME] <- AcidStress[j,i]
+            Module_names[position_ME] <-      colnames(AcidStress)[i]
+            position_ME = position_ME+1
+          }
+          position_ME = i*33+1
+        }
+        stress=rep(generic_stress_sample_names,ncol(AcidStress))
+        stress_1 <- gsub("_1","", stress)
+        stress_2 <- gsub("_2","", stress_1)
+        stress_3 <- gsub("_3","", stress_2)
+        stress=stress_3
+        
+        ME_Kruskall_dataset = as.data.frame(cbind(ME_lengthOfVector,stress, Module_names))
+        colnames(ME_Kruskall_dataset) <- c("MEigengene", "Stress", "Module_names")
+        #Plot <- ggplot(ME_Kruskall_dataset, aes(x=ME_Kruskall_dataset[,2], y=as.numeric(ME_Kruskall_dataset[,1]), fill = ME_Kruskall_dataset[,2])) +  labs(y="Standard deviation of gene expression", x = "Stress conditions")
+        #Plot + geom_violin( width=1, color="white") +geom_boxplot(width = .1, color= "black", alpha = .5) +scale_fill_brewer(palette = "Paired", aesthetics = "fill",guide = "none") +theme_classic(base_size = 16)
+        return(pairwise.wilcox.test(as.numeric(ME_Kruskall_dataset[,1]),ME_Kruskall_dataset[,2],p.adjust.method = "BH"))
+      } 
+      
+      
+      # boxplot(t(AcidStress))
+    })
+    
+    
+    
+    output$mytableVic2 <- renderTable({
+      test_result <- box_plot_Vic_test()
+      
+      # Extract matrix of p-values from the test result
+      pvals_matrix <- test_result$p.value
+      
+      # Convert p-values to asterisks based on significance
+      pvals_matrix[pvals_matrix < 0.001] <- "***"
+      pvals_matrix[pvals_matrix >= 0.001 & pvals_matrix < 0.01] <- "**"
+      pvals_matrix[pvals_matrix >= 0.01 & pvals_matrix < 0.05] <- "*"
+      pvals_matrix[pvals_matrix >= 0.05] <- "ns"
+      
+      # Set the upper triangle values to ""
+      pvals_matrix[upper.tri(pvals_matrix, diag = FALSE)] <- ""
+      
+      # Convert the matrix to a data frame to have row names as an explicit column
+      df <- data.frame(Group = rownames(pvals_matrix), pvals_matrix)
+      
+      df
+      
+    })
+    
+    ####test finish#####
+    
     datVic <- reactive({
       dataset_As <- datasetInputStimulonVic()
       
@@ -8636,7 +10041,20 @@ server <-function(input, output,session) {
     
     output$mytableVic <- DT::renderDataTable({datVic()
       
-      return(datatable(datVic(), extensions = 'Buttons',options = list(paging=TRUE, lengthMenu=c(50,100,150), scrollX = FALSE,lengthChange = T, regex= FALSE, searching = TRUE,initComplete = JS(js),dom = 'Bfrtip',buttons = c('copy', 'csv', 'excel')),rownames=FALSE, class = "display") %>% formatStyle(names(datVic()[-1:-3]), backgroundColor = styleInterval(brks, clrs)))
+      return(datatable(datVic(), extensions = 'Buttons',options = list(paging=FALSE, lengthMenu=c(50,100,150), scrollX = FALSE,lengthChange = T, regex= FALSE, searching = TRUE,initComplete = JS(js),dom = 'Bfrtip',buttons = list(
+        list(
+          extend = "copy",
+          filename = "dataset_copy"
+        ),
+        list(
+          extend = "csv",
+          filename = "dataset_csv"
+        ),
+        list(
+          extend = "excel",
+          filename = "dataset_excel"
+        )
+      )),rownames=FALSE, class = "display") %>% formatStyle(names(datVic()[-1:-3]), backgroundColor = styleInterval(brks, clrs)))
       #options = list(paging=FALSE, scrollX = FALSE), 
       #rownames=TRUE, 
       #filter = "top"
